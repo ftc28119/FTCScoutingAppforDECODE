@@ -110,7 +110,7 @@ let minCheckInterval = 60000;      // 最短1分钟检查一次
 async function fetchTeamsFromBackend() {
     try {
         // 调用API获取队伍数据（不需要管理员密码）
-        const response = await fetch(`http://localhost:3001/api/teams`);
+        const response = await fetch(`${location.protocol}//${location.hostname}:3001/api/teams`);
         
         if (response.ok) {
             const data = await response.json();
@@ -151,7 +151,7 @@ async function loginUser(username, password) {
             return { success: false, message: '用户名和密码不能为空' };
         }
         
-        const response = await fetch('http://localhost:3001/api/login', {
+        const response = await fetch(`${location.protocol}//${location.hostname}:3001/api/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -196,7 +196,7 @@ async function registerUser(username, password, teamNumber = null, inviteCode = 
             bodyData.inviteCode = inviteCode;
         }
         
-        const response = await fetch('http://localhost:3001/api/register', {
+        const response = await fetch(`${location.protocol}//${location.hostname}:3001/api/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -224,7 +224,7 @@ async function registerUser(username, password, teamNumber = null, inviteCode = 
 async function logoutUser() {
     try {
         const currentUser = getCurrentUser();
-        await fetch('http://localhost:3001/api/logout', {
+        await fetch(`${location.protocol}//${location.hostname}:3001/api/logout`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -246,7 +246,7 @@ async function deleteUser(password) {
             return { success: false, message: '请先登录' };
         }
         
-        const response = await fetch('http://localhost:3001/api/delete-user', {
+        const response = await fetch(`${location.protocol}//${location.hostname}:3001/api/delete-user`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -277,7 +277,7 @@ async function changePassword(currentPassword, newPassword) {
             return { success: false, message: '请先登录' };
         }
         
-        const response = await fetch('http://localhost:3001/api/change-password', {
+        const response = await fetch(`${location.protocol}//${location.hostname}:3001/api/change-password`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -563,7 +563,7 @@ function copyToClipboard(text) {
 // 刷新邀请码
 async function refreshInviteCode(teamNumber, username) {
     try {
-        const response = await fetch('http://localhost:3001/api/refresh-invite-code', {
+        const response = await fetch(`${location.protocol}//${location.hostname}:3001/api/refresh-invite-code`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1373,7 +1373,7 @@ async function submitData() {
     };
     
     try {
-        const response = await fetch('http://localhost:3001/api/scouting-data', {
+        const response = await fetch(`${location.protocol}//${location.hostname}:3001/api/scouting-data`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1595,7 +1595,7 @@ function showUserData() {
 async function loadUserData() {
     try {
         const searchTeamNumber = document.getElementById('searchTeamNumber').value;
-        const response = await fetch('http://localhost:3001/api/scouting-data');
+        const response = await fetch(`${location.protocol}//${location.hostname}:3001/api/scouting-data`);
         
         if (response.ok) {
             const data = await response.json();
@@ -1637,7 +1637,7 @@ async function loadUserData() {
 async function deleteMatchData(id) {
     try {
         if (confirm('确定要删除这条比赛数据吗？删除后不可恢复！')) {
-            const response = await fetch(`http://localhost:3001/api/scouting-data/${id}`, {
+            const response = await fetch(`${location.protocol}//${location.hostname}:3001/api/scouting-data/${id}`, {
                 method: 'DELETE'
             });
             
