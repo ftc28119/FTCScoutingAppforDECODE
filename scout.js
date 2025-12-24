@@ -55,9 +55,10 @@ const CONSTANTS = {
 // 获取当前使用的API地址（优先使用用户自定义的地址）
 function getApiUrl() {
     const customUrl = localStorage.getItem(CONSTANTS.API_URL_STORAGE_KEY);
-    // 如果是GitHub Pages部署，使用提供的后端地址
+    // 如果是GitHub Pages部署，使用配置的后端地址
     if (window.location.hostname === 'ftc28119.github.io') {
-        return 'https://ftc28119.github.io/localhost';
+        // 这里使用配置的后端地址，后续可以根据实际部署的云服务URL进行修改
+        return 'https://ftc28119-backend.onrender.com';
     }
     return customUrl || CONSTANTS.API_URL;
 }

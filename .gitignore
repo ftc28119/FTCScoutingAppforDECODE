@@ -1,0 +1,42 @@
+# 依赖
+node_modules/
+
+# 日志
+logs/
+*.log
+
+# 环境变量
+.env
+.env.local
+.env.production
+
+# 临时文件
+*.tmp
+*.temp
+
+# IDE配置
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+
+# 浏览器缓存
+.cache/
+
+# 构建文件
+build/
+dist/
+
+# 测试文件
+coverage/
+.nyc_output/
+
+# 其他
+*.zip
+*.tar.gz
+*.rar
