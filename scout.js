@@ -57,8 +57,8 @@ function getApiUrl() {
     const customUrl = localStorage.getItem(CONSTANTS.API_URL_STORAGE_KEY);
     // 如果是GitHub Pages部署，使用配置的后端地址
     if (window.location.hostname === 'ftc28119.github.io') {
-        // 这里使用配置的后端地址，后续可以根据实际部署的云服务URL进行修改
-        return 'https://ftc28119-backend.onrender.com';
+        // 使用实际的Railway后端URL
+        return 'https://28119.up.railway.app';
     }
     return customUrl || CONSTANTS.API_URL;
 }
