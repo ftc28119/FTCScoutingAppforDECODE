@@ -55,12 +55,17 @@ const CONSTANTS = {
 // 获取当前使用的API地址（优先使用用户自定义的地址）
 function getApiUrl() {
     const customUrl = localStorage.getItem(CONSTANTS.API_URL_STORAGE_KEY);
+    console.log('当前主机名:', window.location.hostname);
+    console.log('自定义API地址:', customUrl);
     // 如果是Railway部署，使用Railway后端URL
-    if (window.location.hostname === '28119scout.up.railway.app') {
+    if (window.location.hostname === '28119scout.railway.app' || window.location.hostname === '28119scout.up.railway.app') {
         // 使用实际的Railway后端URL
+        console.log('使用Railway后端URL');
         return 'https://28119local.up.railway.app';
     }
-    return customUrl || CONSTANTS.API_URL;
+    const result = customUrl || CONSTANTS.API_URL;
+    console.log('返回的API地址:', result);
+    return result;
 }
 
 // 保存自定义API地址到localStorage
@@ -156,15 +161,23 @@ async function loginUser(username, password) {
             return { success: false, message: '用户名和密码不能为空' };
         }
         
+        // 对密码进行哈希处理
+        const hashedPassword = hashPassword(password);
+        
+        console.log('登录请求:', { username, hashedPassword });
+        console.log('API地址:', getApiUrl());
+        
         const response = await fetch(`${getApiUrl()}/api/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ username, password: hashedPassword })
         });
         
+        console.log('登录响应状态:', response.status);
         const result = await response.json();
+        console.log('登录响应结果:', result);
         
         if (result.success) {
             // 登录成功，保存当前用户
