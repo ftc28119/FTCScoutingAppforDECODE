@@ -55,10 +55,10 @@ const CONSTANTS = {
 // 获取当前使用的API地址（优先使用用户自定义的地址）
 function getApiUrl() {
     const customUrl = localStorage.getItem(CONSTANTS.API_URL_STORAGE_KEY);
-    // 如果是GitHub Pages或Railway部署，使用Railway后端URL
-    if (window.location.hostname === 'ftc28119.github.io' || window.location.hostname === '28119scout.railway.app') {
+    // 如果是Railway部署，使用Railway后端URL
+    if (window.location.hostname === '28119scout.up.railway.app') {
         // 使用实际的Railway后端URL
-        return 'https://28119.up.railway.app';
+        return 'https://28119local.up.railway.app';
     }
     return customUrl || CONSTANTS.API_URL;
 }
