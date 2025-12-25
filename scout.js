@@ -1616,12 +1616,12 @@ async function loadUserData() {
         const response = await fetch(`${getApiUrl()}/api/scouting-data`);
         
         if (response.ok) {
-            const data = await response.json();
+            const result = await response.json();
             
             // 过滤数据
-            let filteredData = data;
+            let filteredData = result.data || [];
             if (searchTeamNumber) {
-                filteredData = data.filter(item => item.teamNumber === searchTeamNumber);
+                filteredData = filteredData.filter(item => item.teamNumber === searchTeamNumber);
             }
             
             // 更新表格
