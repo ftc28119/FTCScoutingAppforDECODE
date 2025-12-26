@@ -413,7 +413,7 @@ async function loginUser(username, password) {
 }
 
 // 用户注册函数
-async function registerUser(username, password, teamNumber = null, inviteCode = null, alias = null) {
+async function registerUser(username, password, teamNumber = null, inviteCode = null) {
     try {
         // 只发送非空参数
         const bodyData = {
@@ -429,11 +429,6 @@ async function registerUser(username, password, teamNumber = null, inviteCode = 
         // 只有当inviteCode有值且不为空字符串时才添加到请求体
         if (inviteCode && inviteCode.trim()) {
             bodyData.inviteCode = inviteCode;
-        }
-        
-        // 只有当alias有值且不为空字符串时才添加到请求体
-        if (alias && alias.trim()) {
-            bodyData.alias = alias;
         }
         
         const response = await fetch(`${getApiUrl()}/api/register`, {
@@ -622,7 +617,6 @@ async function login() {
 // 注册函数
 async function register() {
     const username = document.getElementById('registerUsername').value.trim();
-    const alias = document.getElementById('registerAlias').value.trim();
     const password = document.getElementById('registerPassword').value;
     const teamNumber = document.getElementById('registerTeamNumber').value.trim();
     const inviteCode = document.getElementById('registerInviteCode').value.trim();
@@ -656,7 +650,7 @@ async function register() {
     
     document.getElementById('registerError').textContent = '';
     
-    const result = await registerUser(username, password, teamNumber, inviteCode, alias);
+    const result = await registerUser(username, password, teamNumber, inviteCode);
     
     if (result.success) {
         const modal = document.querySelector('.modal');
@@ -722,10 +716,6 @@ function showRegisterModal() {
             <input type="text" id="registerUsername" placeholder="请输入用户名">
         </div>
         <div class="form-group">
-            <label for="registerAlias">别名 (可选)</label>
-            <input type="text" id="registerAlias" placeholder="请输入别名">
-        </div>
-        <div class="form-group">
             <label for="registerPassword">密码</label>
             <input type="password" id="registerPassword" placeholder="请输入密码">
         </div>
@@ -759,12 +749,6 @@ function showRegisterModal() {
     
     // 添加输入事件监听器，当用户开始输入时隐藏错误提示
     document.getElementById('registerUsername').addEventListener('input', () => {
-        const registerError = document.getElementById('registerError');
-        registerError.textContent = '';
-        registerError.style.display = 'none';
-    });
-    
-    document.getElementById('registerAlias').addEventListener('input', () => {
         const registerError = document.getElementById('registerError');
         registerError.textContent = '';
         registerError.style.display = 'none';
