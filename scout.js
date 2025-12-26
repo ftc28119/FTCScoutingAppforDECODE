@@ -1947,6 +1947,9 @@ function importData(file) {
             document.getElementById('teleOpDepot').value = gameData.teleOp.depotArtifacts;
             document.getElementById('teleOpOverflow').value = gameData.teleOp.overflowArtifacts;
             document.getElementById('teleOpClassified').value = gameData.teleOp.classifiedArtifacts;
+            document.getElementById('threeInThree').value = gameData.general.threeInThree || 0;
+            document.getElementById('threeInTwo').value = gameData.general.threeInTwo || 0;
+            document.getElementById('threeInOne').value = gameData.general.threeInOne || 0;
             document.getElementById('baseReturn').value = gameData.teleOp.baseReturnState;
             document.getElementById('diedOnField').checked = gameData.general.diedOnField;
             document.getElementById('notes').value = gameData.general.notes;
