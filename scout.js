@@ -105,6 +105,9 @@ let gameData = {
         driverPerformance: CONSTANTS.DEFAULT_DRIVER_RATING,
         defenseRating: CONSTANTS.DEFAULT_DEFENSE_RATING,
         diedOnField: false,
+        threeInThree: 0,
+        threeInTwo: 0,
+        threeInOne: 0,
         notes: ""
     }
 };
@@ -1219,17 +1222,20 @@ function loadData() {
             initSlots('teleOp');
             
             // 恢复UI状态
-            document.getElementById('robotLeave').checked = gameData.auto.robotLeave;
-            document.getElementById('autoOverflow').value = gameData.auto.overflowArtifacts;
-            document.getElementById('autoClassified').value = gameData.auto.classifiedArtifacts;
-            document.getElementById('teleOpDepot').value = gameData.teleOp.depotArtifacts;
-            document.getElementById('teleOpOverflow').value = gameData.teleOp.overflowArtifacts;
-            document.getElementById('teleOpClassified').value = gameData.teleOp.classifiedArtifacts;
-            document.getElementById('baseReturn').value = gameData.teleOp.baseReturnState;
-            document.getElementById('diedOnField').checked = gameData.general.diedOnField;
-            document.getElementById('notes').value = gameData.general.notes;
-            document.getElementById('driverRating').value = gameData.general.driverPerformance;
-            document.getElementById('defenseRating').value = gameData.general.defenseRating;
+        document.getElementById('robotLeave').checked = gameData.auto.robotLeave;
+        document.getElementById('autoOverflow').value = gameData.auto.overflowArtifacts;
+        document.getElementById('autoClassified').value = gameData.auto.classifiedArtifacts;
+        document.getElementById('teleOpDepot').value = gameData.teleOp.depotArtifacts;
+        document.getElementById('teleOpOverflow').value = gameData.teleOp.overflowArtifacts;
+        document.getElementById('teleOpClassified').value = gameData.teleOp.classifiedArtifacts;
+        document.getElementById('baseReturn').value = gameData.teleOp.baseReturnState;
+        document.getElementById('diedOnField').checked = gameData.general.diedOnField;
+        document.getElementById('threeInThree').value = gameData.general.threeInThree;
+        document.getElementById('threeInTwo').value = gameData.general.threeInTwo;
+        document.getElementById('threeInOne').value = gameData.general.threeInOne;
+        document.getElementById('notes').value = gameData.general.notes;
+        document.getElementById('driverRating').value = gameData.general.driverPerformance;
+        document.getElementById('defenseRating').value = gameData.general.defenseRating;
             
             // 恢复评分按钮状态
             setRating('driverRating', gameData.general.driverPerformance);
@@ -1356,7 +1362,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // 自动更新计数器输入框
-        ['autoOverflow', 'autoClassified', 'teleOpDepot', 'teleOpOverflow', 'teleOpClassified'].forEach(id => {
+        ['autoOverflow', 'autoClassified', 'teleOpDepot', 'teleOpOverflow', 'teleOpClassified', 'threeInThree', 'threeInTwo', 'threeInOne'].forEach(id => {
             document.getElementById(id).addEventListener('input', function() {
                 let value = parseInt(this.value) || 0;
                 if (value < 0) value = 0;
@@ -1373,6 +1379,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     gameData.teleOp.overflowArtifacts = value;
                 } else if (id === 'teleOpClassified') {
                     gameData.teleOp.classifiedArtifacts = value;
+                } else if (id === 'threeInThree') {
+                    gameData.general.threeInThree = value;
+                } else if (id === 'threeInTwo') {
+                    gameData.general.threeInTwo = value;
+                } else if (id === 'threeInOne') {
+                    gameData.general.threeInOne = value;
                 }
                 
                 debouncedUpdateLiveScore();
@@ -1710,6 +1722,12 @@ function updateCounter(fieldId, delta) {
         gameData.teleOp.overflowArtifacts = newValue;
     } else if (fieldId === 'teleOpClassified') {
         gameData.teleOp.classifiedArtifacts = newValue;
+    } else if (fieldId === 'threeInThree') {
+        gameData.general.threeInThree = newValue;
+    } else if (fieldId === 'threeInTwo') {
+        gameData.general.threeInTwo = newValue;
+    } else if (fieldId === 'threeInOne') {
+        gameData.general.threeInOne = newValue;
     }
     
     debouncedUpdateLiveScore();
