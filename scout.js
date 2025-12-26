@@ -21,7 +21,7 @@ const CONSTANTS = {
     // 评分常量
     RATING_MIN: 1,
     RATING_MAX: 5,
-    DEFAULT_DRIVER_RATING: 3,
+    DEFAULT_DRIVER_RATING: 1,
     DEFAULT_DEFENSE_RATING: 1,
     
     // 分数常量
@@ -115,10 +115,179 @@ let serverStatusCheckInterval;
 let currentCheckInterval = 60000;  // 默认60秒检查一次
 let maxCheckInterval = 300000;     // 最长5分钟检查一次
 let minCheckInterval = 60000;      // 最短1分钟检查一次
+let isSubmitting = false; // 标记是否正在提交数据
+let autoSaveInterval; // 自动保存间隔
+
+// 添加加载状态指示
+function showLoading(message = '加载中...') {
+    // 移除已存在的加载元素
+    hideLoading();
+    
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'loadingIndicator';
+    loadingDiv.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        font-size: 20px;
+        color: white;
+    `;
+    
+    const loadingContent = document.createElement('div');
+    loadingContent.style.cssText = `
+        background-color: rgba(52, 152, 219, 0.9);
+        padding: 20px 40px;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    `;
+    
+    const spinner = document.createElement('div');
+    spinner.style.cssText = `
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top: 4px solid white;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+    `;
+    
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    const text = document.createElement('div');
+    text.textContent = message;
+    
+    loadingContent.appendChild(spinner);
+    loadingContent.appendChild(text);
+    loadingDiv.appendChild(loadingContent);
+    document.body.appendChild(loadingDiv);
+}
+
+function hideLoading() {
+    const loadingDiv = document.getElementById('loadingIndicator');
+    if (loadingDiv) {
+        loadingDiv.remove();
+    }
+}
+
+// 添加成功提示动画
+function showSuccess(message = '操作成功') {
+    // 移除已存在的提示元素
+    hideSuccess();
+    
+    const successDiv = document.createElement('div');
+    successDiv.id = 'successMessage';
+    successDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: #2ecc71;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        font-size: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        z-index: 9998;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+    `;
+    successDiv.textContent = message;
+    
+    document.body.appendChild(successDiv);
+    
+    // 动画显示
+    setTimeout(() => {
+        successDiv.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // 自动隐藏
+    setTimeout(() => {
+        successDiv.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (successDiv.parentNode) {
+                successDiv.remove();
+            }
+        }, 300);
+    }, 3000);
+}
+
+function hideSuccess() {
+    const successDiv = document.getElementById('successMessage');
+    if (successDiv) {
+        successDiv.remove();
+    }
+}
+
+// 添加错误提示动画
+function showError(message = '操作失败') {
+    // 移除已存在的提示元素
+    hideError();
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.id = 'errorMessage';
+    errorDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: #e74c3c;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        font-size: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        z-index: 9998;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+    `;
+    errorDiv.textContent = message;
+    
+    document.body.appendChild(errorDiv);
+    
+    // 动画显示
+    setTimeout(() => {
+        errorDiv.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // 自动隐藏
+    setTimeout(() => {
+        errorDiv.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (errorDiv.parentNode) {
+                errorDiv.remove();
+            }
+        }, 300);
+    }, 5000);
+}
+
+function hideError() {
+    const errorDiv = document.getElementById('errorMessage');
+    if (errorDiv) {
+        errorDiv.remove();
+    }
+}
 
 // 从后端获取队伍数据
 async function fetchTeamsFromBackend() {
     try {
+        showLoading('加载队伍数据中...');
+        
         // 调用API获取队伍数据（不需要管理员密码）
         const response = await fetch(`${getApiUrl()}/api/teams`);
         
@@ -126,15 +295,63 @@ async function fetchTeamsFromBackend() {
             const data = await response.json();
             // 保存队伍数据到localStorage
             localStorage.setItem(CONSTANTS.TEAMS_STORAGE_KEY, JSON.stringify(data.teams || {}));
+            hideLoading();
             return true;
         } else {
             console.error('获取队伍数据失败:', response.status);
+            hideLoading();
+            showError('获取队伍数据失败');
             return false;
         }
     } catch (error) {
         console.error('获取队伍数据异常:', error);
+        hideLoading();
+        showError('获取队伍数据失败，请稍后重试');
         return false;
     }
+}
+
+// 添加表单实时验证
+function initFormValidation() {
+    const inputs = document.querySelectorAll('input[required], select[required], textarea[required]');
+    
+    inputs.forEach(input => {
+        input.addEventListener('input', validateInput);
+        input.addEventListener('blur', validateInput);
+    });
+}
+
+function validateInput(event) {
+    const input = event.target;
+    const formGroup = input.closest('.form-group');
+    const errorMessage = formGroup?.querySelector('.error-message');
+    
+    if (!formGroup || !errorMessage) {
+        return;
+    }
+    
+    if (input.validity.valid) {
+        formGroup.classList.remove('error');
+        errorMessage.style.display = 'none';
+    } else {
+        formGroup.classList.add('error');
+        errorMessage.style.display = 'block';
+    }
+}
+
+// 初始化自动保存功能
+function initAutoSave() {
+    autoSaveInterval = setInterval(() => {
+        saveData();
+    }, 30000); // 每30秒自动保存一次
+    
+    // 添加页面离开前的提示
+    window.addEventListener('beforeunload', (event) => {
+        // 这里可以检查是否有未保存的数据
+        // 如果有，可以显示提示
+        // event.preventDefault();
+        // event.returnValue = '';
+    });
 }
 
 // 获取当前登录用户
@@ -1032,7 +1249,114 @@ document.addEventListener('DOMContentLoaded', function() {
         updateAuthUI();
         console.log('认证UI更新完成');
         
+        console.log('初始化表单验证...');
+        initFormValidation();
+        console.log('表单验证初始化完成');
+        
+        console.log('初始化自动保存功能...');
+        initAutoSave();
+        console.log('自动保存功能初始化完成');
+        
         console.log('页面初始化完成');
+        
+        // 添加基本信息事件监听器
+        document.getElementById('teamNumber').addEventListener('input', saveData);
+        document.getElementById('matchName').addEventListener('input', saveData);
+        document.getElementById('matchType').addEventListener('change', saveData);
+        document.getElementById('matchNumber').addEventListener('input', saveData);
+        
+        // 为所有按钮添加点击效果
+        document.querySelectorAll('button').forEach(button => {
+            // 使用mousedown事件来避免与click事件冲突
+            button.addEventListener('mousedown', function() {
+                // 添加点击效果类
+                this.classList.add('clicked');
+                
+                // 移除点击效果类以准备下一次点击
+                setTimeout(() => {
+                    this.classList.remove('clicked');
+                }, 300);
+            });
+        });
+        
+        // 添加事件监听器
+        document.getElementById('motif').addEventListener('change', function() {
+            selectedMotif = this.value;
+            debouncedCheckPatternMatch();
+            debouncedUpdateLiveScore();
+            saveData();
+        });
+        
+        document.getElementById('robotLeave').addEventListener('change', function() {
+            gameData.auto.robotLeave = this.checked;
+            debouncedUpdateLiveScore();
+            saveData();
+        });
+        
+        document.getElementById('baseReturn').addEventListener('change', function() {
+            gameData.teleOp.baseReturnState = this.value;
+            debouncedUpdateLiveScore();
+            saveData();
+        });
+        
+        document.getElementById('diedOnField').addEventListener('change', function() {
+            gameData.general.diedOnField = this.checked;
+            saveData();
+        });
+        
+        document.getElementById('notes').addEventListener('input', function() {
+            gameData.general.notes = this.value;
+            saveData();
+        });
+        
+        // 自动更新计数器输入框
+        ['autoOverflow', 'autoClassified', 'teleOpDepot', 'teleOpOverflow', 'teleOpClassified'].forEach(id => {
+            document.getElementById(id).addEventListener('input', function() {
+                let value = parseInt(this.value) || 0;
+                if (value < 0) value = 0;
+                this.value = value;
+                
+                // 更新gameData
+                if (id === 'autoOverflow') {
+                    gameData.auto.overflowArtifacts = value;
+                } else if (id === 'autoClassified') {
+                    gameData.auto.classifiedArtifacts = value;
+                } else if (id === 'teleOpDepot') {
+                    gameData.teleOp.depotArtifacts = value;
+                } else if (id === 'teleOpOverflow') {
+                    gameData.teleOp.overflowArtifacts = value;
+                } else if (id === 'teleOpClassified') {
+                    gameData.teleOp.classifiedArtifacts = value;
+                }
+                
+                debouncedUpdateLiveScore();
+                saveData();
+            });
+        });
+        
+        // 为评分按钮添加事件监听器
+        ['driverRating', 'defenseRating'].forEach(ratingType => {
+            const ratingContainer = document.getElementById(`${ratingType}Container`);
+            if (ratingContainer) {
+                ratingContainer.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('rating-btn')) {
+                        const rating = parseInt(e.target.textContent);
+                        setRating(ratingType, rating);
+                        gameData.general[`${ratingType.charAt(0).toLowerCase() + ratingType.slice(1)}`] = rating;
+                        saveData();
+                    }
+                });
+            }
+        });
+        
+        // 自动更新分数
+        updateLiveScore();
+        
+        // 自动检查模式匹配
+        checkPatternMatch();
+        
+        // 定期检查服务器状态
+        startServerStatusCheck();
     
     } catch (error) {
         console.error('页面初始化错误:', error);
@@ -1048,97 +1372,6 @@ document.addEventListener('DOMContentLoaded', function() {
             importData(e.target.files[0]);
             // 重置文件输入，允许重新选择同一文件
             e.target.value = '';
-        }
-    });
-    
-
-    // 添加基本信息事件监听器
-    document.getElementById('teamNumber').addEventListener('input', saveData);
-    document.getElementById('matchName').addEventListener('input', saveData);
-    document.getElementById('matchType').addEventListener('change', saveData);
-    document.getElementById('matchNumber').addEventListener('input', saveData);
-    
-    // 为所有按钮添加点击效果
-    document.querySelectorAll('button').forEach(button => {
-        // 使用mousedown事件来避免与click事件冲突
-        button.addEventListener('mousedown', function() {
-            // 添加点击效果类
-            this.classList.add('clicked');
-            
-            // 移除点击效果类以准备下一次点击
-            setTimeout(() => {
-                this.classList.remove('clicked');
-            }, 300);
-        });
-    });
-    
-    // 添加事件监听器
-    document.getElementById('motif').addEventListener('change', function() {
-        selectedMotif = this.value;
-        debouncedCheckPatternMatch();
-        debouncedUpdateLiveScore();
-        saveData();
-    });
-    
-    document.getElementById('robotLeave').addEventListener('change', function() {
-        gameData.auto.robotLeave = this.checked;
-        debouncedUpdateLiveScore();
-        saveData();
-    });
-    
-    document.getElementById('baseReturn').addEventListener('change', function() {
-        gameData.teleOp.baseReturnState = this.value;
-        debouncedUpdateLiveScore();
-        saveData();
-    });
-    
-    document.getElementById('diedOnField').addEventListener('change', function() {
-        gameData.general.diedOnField = this.checked;
-        saveData();
-    });
-    
-    document.getElementById('notes').addEventListener('input', function() {
-        gameData.general.notes = this.value;
-        saveData();
-    });
-    
-    // 自动更新计数器输入框
-    ['autoOverflow', 'autoClassified', 'teleOpDepot', 'teleOpOverflow', 'teleOpClassified'].forEach(id => {
-        document.getElementById(id).addEventListener('input', function() {
-            let value = parseInt(this.value) || 0;
-            if (value < 0) value = 0;
-            this.value = value;
-            
-            // 更新gameData
-            if (id === 'autoOverflow') {
-                gameData.auto.overflowArtifacts = value;
-            } else if (id === 'autoClassified') {
-                gameData.auto.classifiedArtifacts = value;
-            } else if (id === 'teleOpDepot') {
-                gameData.teleOp.depotArtifacts = value;
-            } else if (id === 'teleOpOverflow') {
-                gameData.teleOp.overflowArtifacts = value;
-            } else if (id === 'teleOpClassified') {
-                gameData.teleOp.classifiedArtifacts = value;
-            }
-            
-            debouncedUpdateLiveScore();
-            saveData();
-        });
-    });
-    
-    // 为评分按钮添加事件监听器
-    ['driverRating', 'defenseRating'].forEach(ratingType => {
-        const ratingContainer = document.getElementById(`${ratingType}Container`);
-        if (ratingContainer) {
-            ratingContainer.addEventListener('click', function(e) {
-                if (e.target.classList.contains('rating-btn')) {
-                    const rating = parseInt(e.target.textContent);
-                    setRating(ratingType, rating);
-                    gameData.general[`${ratingType.charAt(0).toLowerCase() + ratingType.slice(1)}`] = rating;
-                    saveData();
-                }
-            });
         }
     });
 });
@@ -1270,45 +1503,54 @@ function updateSlotsUI(phase) {
 
 // 计算总分
 function calculateScore() {
-    let score = 0;
+    let autoScore = 0;
+    let teleOpScore = 0;
     
     // Auto阶段分数
     if (gameData.auto.robotLeave) {
-        score += CONSTANTS.AUTO_ROBOT_LEAVE;
+        autoScore += CONSTANTS.AUTO_ROBOT_LEAVE;
     }
     
-    score += gameData.auto.classifiedArtifacts * CONSTANTS.CLASSIFIED_ARTIFACT;
-    score += gameData.auto.overflowArtifacts * CONSTANTS.OVERFLOW_ARTIFACT;
+    autoScore += gameData.auto.classifiedArtifacts * CONSTANTS.CLASSIFIED_ARTIFACT;
+    autoScore += gameData.auto.overflowArtifacts * CONSTANTS.OVERFLOW_ARTIFACT;
     
     // 检查图案匹配
     const patternMatch = checkPatternMatch();
     if (patternMatch.autoMatch) {
-        score += CONSTANTS.PATTERN_MATCH;
+        autoScore += CONSTANTS.PATTERN_MATCH;
     }
     
     // TeleOp阶段分数
-    score += gameData.teleOp.depotArtifacts * CONSTANTS.DEPOT_ARTIFACT;
-    score += gameData.teleOp.overflowArtifacts * CONSTANTS.OVERFLOW_ARTIFACT;
-    score += gameData.teleOp.classifiedArtifacts * CONSTANTS.CLASSIFIED_ARTIFACT;
+    teleOpScore += gameData.teleOp.depotArtifacts * CONSTANTS.DEPOT_ARTIFACT;
+    teleOpScore += gameData.teleOp.overflowArtifacts * CONSTANTS.OVERFLOW_ARTIFACT;
+    teleOpScore += gameData.teleOp.classifiedArtifacts * CONSTANTS.CLASSIFIED_ARTIFACT;
     
     if (patternMatch.teleOpMatch) {
-        score += CONSTANTS.PATTERN_MATCH;
+        teleOpScore += CONSTANTS.PATTERN_MATCH;
     }
     
     // Base返回分数
     if (gameData.teleOp.baseReturnState === 'Partial') {
-        score += CONSTANTS.BASE_RETURN_PARTIAL;
+        teleOpScore += CONSTANTS.BASE_RETURN_PARTIAL;
     } else if (gameData.teleOp.baseReturnState === 'Full') {
-        score += CONSTANTS.BASE_RETURN_FULL;
+        teleOpScore += CONSTANTS.BASE_RETURN_FULL;
     }
     
-    return score;
+    const totalScore = autoScore + teleOpScore;
+    
+    return {
+        autoScore,
+        teleOpScore,
+        totalScore
+    };
 }
 
 // 更新实时分数
 function updateLiveScore() {
     const score = calculateScore();
-    document.getElementById('totalScore').textContent = score;
+    document.getElementById('autoScore').textContent = score.autoScore;
+    document.getElementById('teleOpScore').textContent = score.teleOpScore;
+    document.getElementById('totalScore').textContent = score.totalScore;
 }
 
 // 防抖函数
@@ -1356,23 +1598,28 @@ function updateCounter(fieldId, delta) {
 
 // 提交数据
 async function submitData() {
+    // 防止重复提交
+    if (isSubmitting) {
+        return;
+    }
+    
     const teamNumber = document.getElementById('teamNumber').value;
     const matchName = document.getElementById('matchName').value;
     const matchType = document.getElementById('matchType').value;
     const matchNumber = document.getElementById('matchNumber').value;
     
     if (!teamNumber) {
-        alert('请输入队伍编号');
+        showError('请输入队伍编号');
         return;
     }
     
     if (!matchName) {
-        alert('请输入比赛名称');
+        showError('请输入比赛名称');
         return;
     }
     
     if (!matchNumber) {
-        alert('请输入比赛编号');
+        showError('请输入比赛编号');
         return;
     }
     
@@ -1386,11 +1633,14 @@ async function submitData() {
         matchNumber,
         gameData,
         selectedMotif,
-        score: calculateScore(),
+        score: calculateScore().totalScore,
         timestamp: new Date().toISOString()
     };
     
     try {
+        isSubmitting = true;
+        showLoading('数据提交中...');
+        
         const response = await fetch(`${getApiUrl()}/api/scouting-data`, {
             method: 'POST',
             headers: {
@@ -1400,16 +1650,20 @@ async function submitData() {
         });
         
         const result = await response.json();
+        hideLoading();
         
         if (result.success) {
-            alert('数据提交成功！');
+            showSuccess('数据提交成功！');
             resetData();
         } else {
-            alert('数据提交失败：' + result.message);
+            showError('数据提交失败：' + result.message);
         }
     } catch (error) {
         console.error('数据提交失败:', error);
-        alert('数据提交失败，请检查网络连接或稍后重试');
+        hideLoading();
+        showError('数据提交失败，请检查网络连接或稍后重试');
+    } finally {
+        isSubmitting = false;
     }
 }
 
@@ -1495,7 +1749,7 @@ function exportData() {
         matchNumber,
         gameData,
         selectedMotif,
-        score: calculateScore(),
+        score: calculateScore().totalScore,
         timestamp: new Date().toISOString()
     };
     
@@ -1612,7 +1866,9 @@ function showUserData() {
 // 加载用户数据
 async function loadUserData() {
     try {
-        const searchTeamNumber = document.getElementById('searchTeamNumber').value;
+        showLoading('加载数据中...');
+        
+        const searchTeamNumber = document.getElementById('searchTeamNumber')?.value;
         const response = await fetch(`${getApiUrl()}/api/scouting-data`);
         
         if (response.ok) {
@@ -1628,26 +1884,38 @@ async function loadUserData() {
             const tableBody = document.getElementById('userDataTableBody');
             tableBody.innerHTML = '';
             
-            filteredData.forEach(item => {
+            if (filteredData.length === 0) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${item.teamNumber}</td>
-                    <td>${item.matchName}</td>
-                    <td>${item.matchType}</td>
-                    <td>${item.matchNumber}</td>
-                    <td>${item.score}</td>
-                    <td>
-                        <button class="btn-sm btn-primary" onclick="showDetailedData(${JSON.stringify(item).replace(/"/g, '&quot;')})">查看详细</button>
-                        <button class="btn-sm btn-danger" onclick="deleteMatchData('${item.id}')">删除</button>
-                    </td>
+                    <td colspan="6" style="text-align: center; padding: 20px; color: #666;">暂无数据</td>
                 `;
                 tableBody.appendChild(row);
-            });
+            } else {
+                filteredData.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.teamNumber}</td>
+                        <td>${item.matchName}</td>
+                        <td>${item.matchType}</td>
+                        <td>${item.matchNumber}</td>
+                        <td>${item.score}</td>
+                        <td>
+                            <button class="btn-sm btn-primary" onclick="showDetailedData(${JSON.stringify(item).replace(/"/g, '&quot;')})">查看详细</button>
+                            <button class="btn-sm btn-danger" onclick="deleteMatchData('${item.id}')">删除</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
         } else {
             console.error('加载数据失败:', response.status);
+            showError('加载数据失败');
         }
     } catch (error) {
         console.error('加载数据异常:', error);
+        showError('加载数据失败，请稍后重试');
+    } finally {
+        hideLoading();
     }
 }
 
@@ -1655,23 +1923,28 @@ async function loadUserData() {
 async function deleteMatchData(id) {
     try {
         if (confirm('确定要删除这条比赛数据吗？删除后不可恢复！')) {
+            showLoading('删除中...');
+            
             const response = await fetch(`${getApiUrl()}/api/scouting-data/${id}`, {
                 method: 'DELETE'
             });
             
+            hideLoading();
+            
             if (response.ok) {
                 const result = await response.json();
-                alert(result.message);
+                showSuccess(result.message);
                 // 重新加载数据
                 loadUserData();
             } else {
                 const result = await response.json();
-                alert('删除失败: ' + result.message);
+                showError('删除失败: ' + result.message);
             }
         }
     } catch (error) {
         console.error('删除数据异常:', error);
-        alert('删除失败，请稍后重试');
+        hideLoading();
+        showError('删除失败，请稍后重试');
     }
 }
 
