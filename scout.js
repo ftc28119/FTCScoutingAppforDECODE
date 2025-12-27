@@ -2025,7 +2025,6 @@ function loadDataToForm(data) {
 }
 
 // 从云端加载数据
-// 从云端加载数据
 function loadFromCloud() {
     console.log('loadFromCloud函数被调用');
     
@@ -2090,6 +2089,15 @@ function loadFromCloud() {
     
     console.log('模态框创建完成并添加到body');
     alert('模态框已创建完成');
+}
+
+// 测试加载云端数据函数
+function testLoadFromCloud() {
+    console.log('testLoadFromCloud函数被调用');
+    alert('testLoadFromCloud函数被调用');
+    
+    // 直接调用loadFromCloud函数
+    loadFromCloud();
 }
 
 // 显示用户数据
