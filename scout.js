@@ -543,63 +543,74 @@ async function changePassword(currentPassword, newPassword) {
 
 // 创建模态框
 function createModal(title, content) {
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.cssText = `
+    // 创建一个全屏的固定定位元素作为模态框容器
+    const modalContainer = document.createElement('div');
+    modalContainer.className = 'modal-container';
+    modalContainer.style.cssText = `
         position: fixed;
         top: 0;
         left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.7);
         display: flex;
         justify-content: center;
         align-items: center;
-        z-index: 1000;
+        z-index: 9999;
+        overflow: hidden;
     `;
     
     // 添加模态框的背景遮罩点击关闭功能
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-            closeModal(modal);
+    modalContainer.addEventListener('click', function(e) {
+        if (e.target === modalContainer) {
+            closeModal(modalContainer);
         }
     });
     
+    // 创建模态框内容容器
     const modalContent = document.createElement('div');
     modalContent.className = 'modal-content';
     modalContent.style.cssText = `
         background-color: white;
         border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         width: 90%;
-        max-width: 600px;
-        max-height: 85vh;
+        max-width: 650px;
+        max-height: 90vh;
         display: flex;
         flex-direction: column;
         position: relative;
-        z-index: 1001;
+        z-index: 10000;
+        overflow: hidden;
     `;
     
+    // 创建模态框头部
     const modalHeader = document.createElement('div');
     modalHeader.style.cssText = `
         padding: 20px;
         border-bottom: 1px solid #e9ecef;
         flex-shrink: 0;
+        background-color: #f8f9fa;
     `;
     
+    // 创建模态框标题
     const modalTitle = document.createElement('h3');
     modalTitle.textContent = title;
-    modalTitle.style.margin: 0;
+    modalTitle.style.margin = '0';
+    modalTitle.style.fontSize = '18px';
     modalHeader.appendChild(modalTitle);
     
+    // 创建模态框内容区域
     const contentDiv = document.createElement('div');
     contentDiv.innerHTML = content;
     contentDiv.style.cssText = `
         padding: 20px;
         overflow-y: auto;
         flex: 1;
+        font-size: 14px;
     `;
     
+    // 创建模态框页脚
     const modalFooter = document.createElement('div');
     modalFooter.style.cssText = `
         padding: 15px 20px;
@@ -608,16 +619,19 @@ function createModal(title, content) {
         display: flex;
         justify-content: flex-end;
         gap: 10px;
+        background-color: #f8f9fa;
     `;
     
+    // 组合模态框
     modalContent.appendChild(modalHeader);
     modalContent.appendChild(contentDiv);
     modalContent.appendChild(modalFooter);
+    modalContainer.appendChild(modalContent);
     
-    modal.appendChild(modalContent);
-    document.body.appendChild(modal);
+    // 将模态框添加到页面
+    document.body.appendChild(modalContainer);
     
-    return modal;
+    return modalContainer;
 }
 
 // 关闭模态框
