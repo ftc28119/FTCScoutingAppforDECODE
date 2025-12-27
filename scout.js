@@ -566,16 +566,18 @@ function createModal(title, content) {
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         width: 90%;
         max-width: 500px;
-        max-height: 80vh;
+        max-height: 70vh;
         display: flex;
         flex-direction: column;
         position: relative;
         z-index: 1002;
+        overflow-x: auto;
     `;
     
     const modalHeader = document.createElement('div');
     modalHeader.style.cssText = `
         padding: 20px 20px 0;
+        flex-shrink: 0;
     `;
     
     const modalTitle = document.createElement('h3');
@@ -589,17 +591,46 @@ function createModal(title, content) {
         padding: 0 20px;
         overflow-y: auto;
         flex: 1;
+        max-height: calc(70vh - 120px);
     `;
     
     const modalFooter = document.createElement('div');
     modalFooter.style.cssText = `
         padding: 20px;
         border-top: 1px solid #e9ecef;
+        flex-shrink: 0;
     `;
     
     modalContent.appendChild(modalHeader);
     modalContent.appendChild(contentDiv);
     modalContent.appendChild(modalFooter);
+    
+    // 添加针对详细数据表格的样式优化
+    const style = document.createElement('style');
+    style.textContent = `
+        .modal-content .detailed-data-table {
+            min-width: auto;
+            max-width: 100%;
+        }
+        
+        .modal-content .detailed-data-table th,
+        .modal-content .detailed-data-table td {
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+        
+        .modal-content .detailed-data-table thead th {
+            white-space: nowrap;
+        }
+        
+        .modal-content .detailed-data-table tbody td {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    `;
+    modalContent.appendChild(style);
+    
     modal.appendChild(modalContent);
     document.body.appendChild(modal);
     
