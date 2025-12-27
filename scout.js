@@ -1416,9 +1416,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 自动检查模式匹配
         checkPatternMatch();
-        
-        // 定期检查服务器状态
-        startServerStatusCheck();
     
     } catch (error) {
         console.error('页面初始化错误:', error);
@@ -2210,6 +2207,60 @@ async function deleteMatchData(id) {
     }
 }
 
+// 加载数据到页面
+function loadDataToPage(data) {
+    try {
+        // 恢复基本信息
+        document.getElementById('teamNumber').value = data.teamNumber || '';
+        document.getElementById('matchName').value = data.matchName || '';
+        document.getElementById('matchType').value = data.matchType || 'Q';
+        document.getElementById('matchNumber').value = data.matchNumber || '1';
+        
+        // 恢复游戏数据
+        if (data.gameData) {
+            gameData = data.gameData;
+        }
+        
+        // 恢复motif
+        if (data.selectedMotif) {
+            selectedMotif = data.selectedMotif;
+            document.getElementById('motif').value = selectedMotif;
+        }
+        
+        // 重新初始化UI
+        initSlots('auto');
+        initSlots('teleOp');
+        
+        // 恢复其他UI元素
+        document.getElementById('robotLeave').checked = gameData.auto.robotLeave || false;
+        document.getElementById('autoOverflow').value = gameData.auto.overflowArtifacts || 0;
+        document.getElementById('autoClassified').value = gameData.auto.classifiedArtifacts || 0;
+        document.getElementById('teleOpDepot').value = gameData.teleOp.depotArtifacts || 0;
+        document.getElementById('teleOpOverflow').value = gameData.teleOp.overflowArtifacts || 0;
+        document.getElementById('teleOpClassified').value = gameData.teleOp.classifiedArtifacts || 0;
+        document.getElementById('baseReturn').value = gameData.teleOp.baseReturnState || 'None';
+        document.getElementById('diedOnField').checked = gameData.general.diedOnField || false;
+        document.getElementById('notes').value = gameData.general.notes || '';
+        
+        // 恢复三个新的统计字段
+        document.getElementById('threeInThree').value = gameData.general.threeInThree || 0;
+        document.getElementById('threeInTwo').value = gameData.general.threeInTwo || 0;
+        document.getElementById('threeInOne').value = gameData.general.threeInOne || 0;
+        
+        // 恢复评分
+        setRating('driverRating', gameData.general.driverPerformance || CONSTANTS.DEFAULT_DRIVER_RATING);
+        setRating('defenseRating', gameData.general.defenseRating || CONSTANTS.DEFAULT_DEFENSE_RATING);
+        
+        // 更新实时分数
+        updateLiveScore();
+        
+        showSuccess('数据已加载到页面');
+    } catch (error) {
+        console.error('加载数据到页面失败:', error);
+        showError('加载数据到页面失败，请稍后重试');
+    }
+}
+
 // 显示详细数据
 function showDetailedData(item) {
     // 创建详细数据表格
@@ -2263,7 +2314,7 @@ function showDetailedData(item) {
                 
                 <!-- 一般数据 -->
                 <tr>
-                    <td rowspan="3">一般数据</td>
+                    <td rowspan="6">一般数据</td>
                     <td>驾驶员评分</td>
                     <td>${item.gameData.general.driverPerformance}</td>
                 </tr>
@@ -2274,6 +2325,18 @@ function showDetailedData(item) {
                 <tr>
                     <td>机器人故障</td>
                     <td>${item.gameData.general.diedOnField ? '是' : '否'}</td>
+                </tr>
+                <tr>
+                    <td>投3中3次数</td>
+                    <td>${item.gameData.general.threeInThree || 0}</td>
+                </tr>
+                <tr>
+                    <td>投3中2次数</td>
+                    <td>${item.gameData.general.threeInTwo || 0}</td>
+                </tr>
+                <tr>
+                    <td>投3中1次数</td>
+                    <td>${item.gameData.general.threeInOne || 0}</td>
                 </tr>
             </tbody>
         </table>
@@ -2286,13 +2349,22 @@ function showDetailedData(item) {
     
     const modal = createModal('详细数据', detailedDataTable);
     
+    const loadToPageBtn = document.createElement('button');
+    loadToPageBtn.textContent = '加载到页面';
+    loadToPageBtn.className = 'btn-primary';
+    loadToPageBtn.onclick = () => {
+        loadDataToPage(item);
+        closeModal(modal);
+    };
+    
     const closeBtn = document.createElement('button');
     closeBtn.textContent = '关闭';
-    closeBtn.className = 'btn-primary';
+    closeBtn.className = 'btn-secondary';
     closeBtn.onclick = () => closeModal(modal);
     
     const buttonsContainer = document.createElement('div');
     buttonsContainer.className = 'button-group';
+    buttonsContainer.appendChild(loadToPageBtn);
     buttonsContainer.appendChild(closeBtn);
     
     modal.querySelector('.modal-content').appendChild(buttonsContainer);
