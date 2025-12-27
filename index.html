@@ -53,40 +53,70 @@
             min-width: 200px;
         }
 
-        /* 确保通用信息部分的评分组件横向排列 */
+        /* 表单布局优化 */
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 220px;
+            margin-bottom: 0;
+        }
+
+        /* 通用信息部分优化 */
         #generalContent .form-row {
             display: flex;
-            flex-wrap: nowrap;
-            gap: 20px;
+            flex-wrap: wrap;
+            gap: 25px;
         }
 
         #generalContent .form-group {
             flex: 1;
-            min-width: auto;
+            min-width: 200px;
         }
 
-        /* 确保评分按钮横向排列 */
+        /* 评分按钮容器优化 */
         #driverRatingContainer,
         #defenseRatingContainer {
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 15px;
+            margin-top: 8px;
         }
 
+        /* 评分按钮优化 */
+        .rating-btn {
+            width: 50px;
+            height: 50px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* 标签样式优化 */
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
+        /* 输入控件样式优化 */
         input, select, textarea {
             width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 4px;
+            padding: 12px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
             font-size: 16px;
-            transition: all 0.3s ease;
+            transition: var(--transition);
             position: relative;
+            background-color: white;
         }
         
         /* 优化表单元素的移动端体验 */
@@ -330,25 +360,27 @@
 
         /* 分数显示区域优化 */
         .scores-display {
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
-            padding: 25px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow-sm);
+            background: linear-gradient(135deg, var(--light-color), var(--border-color));
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-md);
             transition: var(--transition);
+            text-align: center;
         }
 
         .scores-display:hover {
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-1px);
         }
 
         .score-item {
             display: inline-block;
-            margin-right: 20px;
-            padding: 15px 20px;
-            background-color: white;
-            border-radius: 10px;
-            min-width: 120px;
+            margin: 0 15px 15px 15px;
+            padding: 20px 25px;
+            background-color: var(--card-background);
+            border-radius: 12px;
+            min-width: 140px;
             text-align: center;
             box-shadow: var(--shadow-sm);
             transition: var(--transition);
@@ -356,15 +388,25 @@
         }
 
         .score-item:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px);
             box-shadow: var(--shadow-md);
         }
 
+        .score-item div:first-child {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         .score-value {
-            font-size: 32px;
-            font-weight: bold;
+            font-size: 36px;
+            font-weight: 700;
             color: var(--primary-color);
             transition: var(--transition);
+            line-height: 1;
         }
 
         /* 分数更新动画 */
@@ -476,23 +518,52 @@
             to { background-color: rgba(0, 0, 0, 0.5); }
         }
 
+        /* 标题层次优化 */
+        h1, h2, h3, h4, h5, h6 {
+            margin: 0;
+            line-height: 1.2;
+            font-weight: 600;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        h2 {
+            font-size: 1.875rem;
+            margin-bottom: 1.5rem;
+            color: var(--dark-color);
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--dark-color);
+        }
+
         /* 阶段标题优化 */
         .phase-section {
-            margin-bottom: 25px;
+            margin-bottom: 30px;
         }
 
         .phase-header {
             background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
             color: white;
-            padding: 15px 20px;
-            border-radius: 10px;
+            padding: 20px 25px;
+            border-radius: 12px;
             cursor: pointer;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             box-shadow: var(--shadow-sm);
             transition: var(--transition);
+        }
+
+        .phase-header h3 {
+            color: white;
+            margin-bottom: 0;
         }
 
         .phase-header:hover {
@@ -655,8 +726,33 @@
         .button-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 25px;
+            gap: 15px;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--light-color);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            align-items: center;
+        }
+
+        /* 主要操作区域按钮组优化 */
+        .form-section:last-child .button-group {
+            background-color: var(--card-background);
+            box-shadow: var(--shadow-sm);
+            border-radius: 12px;
+            padding: 25px;
+            justify-content: center;
+        }
+
+        /* 表单部分优化 */
+        .form-section {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            margin-bottom: 25px;
+            padding: 30px;
+            border-radius: 12px;
         }
 
         /* 模态框优化 */
