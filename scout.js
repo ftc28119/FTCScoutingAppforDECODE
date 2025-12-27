@@ -2025,75 +2025,165 @@ function loadDataToForm(data) {
 }
 
 // 从云端加载数据
+// 从云端加载数据
 async function loadFromCloud() {
+    console.log('loadFromCloud函数被调用');
+    
+    // 先显示一个简单的alert，确认函数被调用
+    alert('开始加载云端数据...');
+    
     try {
         console.log('开始执行loadFromCloud函数');
-        showLoading('加载云端数据中...');
+        
+        // 直接显示模态框，不依赖showLoading函数
+        const loadingModal = document.createElement('div');
+        loadingModal.id = 'loadingModal';
+        loadingModal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            font-size: 20px;
+            color: white;
+        `;
+        loadingModal.innerHTML = `
+            <div style="background-color: rgba(52, 152, 219, 0.9); padding: 20px 40px; border-radius: 8px; text-align: center;">
+                <div style="border: 4px solid rgba(255, 255, 255, 0.3); border-top: 4px solid white; border-radius: 50%; width: 40px; height: 40px; margin: 0 auto 15px; animation: spin 1s linear infinite;"></div>
+                <div>加载云端数据中...</div>
+            </div>
+        `;
+        document.body.appendChild(loadingModal);
+        
+        // 添加旋转动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
         
         // 直接使用固定的本地地址进行测试
         const apiUrl = 'http://localhost:8080';
         console.log('使用的API地址:', apiUrl);
         
         // 从云端获取所有比赛数据
+        console.log('开始发送fetch请求');
         const response = await fetch(`${apiUrl}/api/scouting-data`);
+        console.log('fetch请求返回');
         
         console.log('API响应状态:', response.status);
-        console.log('API响应头:', response.headers);
+        
+        // 移除加载模态框
+        document.body.removeChild(loadingModal);
         
         if (!response.ok) {
             const errorText = await response.text();
             console.error('API响应错误:', errorText);
-            throw new Error(`获取云端数据失败，状态码: ${response.status}, 错误信息: ${errorText}`);
+            alert(`获取云端数据失败，状态码: ${response.status}, 错误信息: ${errorText}`);
+            return;
         }
         
         const result = await response.json();
-        console.log('API响应结果:', JSON.stringify(result, null, 2));
+        console.log('API响应结果:', result);
         
         const allData = result.data || [];
-        console.log('所有数据:', JSON.stringify(allData, null, 2));
-        
-        hideLoading();
+        console.log('所有数据:', allData);
         
         if (allData.length === 0) {
-            showError('云端没有可用的数据');
+            alert('云端没有可用的数据');
             console.log('云端没有可用的数据');
             return;
         }
         
-        // 创建选择数据的模态框
-        let dataListHtml = '<select id="cloudDataSelect" style="width: 100%; padding: 10px; border-radius: 4px; border: 2px solid #ddd; font-size: 16px; margin-bottom: 20px;">';
+        alert(`成功获取到 ${allData.length} 条数据，准备显示选择模态框`);
+        
+        // 创建一个简单的选择数据的HTML
+        let selectHtml = '<select id="cloudDataSelect" style="width: 100%; padding: 10px; margin-bottom: 20px; font-size: 16px;">';
         allData.forEach((item, index) => {
             console.log('处理数据项:', index, item);
             const displayText = `${item.teamNumber || '未知'} - ${item.matchName || '未知'} - ${item.matchType || 'Q'}${item.matchNumber || '0'} - 总分: ${item.score || 0}`;
-            dataListHtml += `<option value="${index}">${displayText}</option>`;
+            selectHtml += `<option value="${index}">${displayText}</option>`;
         });
-        dataListHtml += '</select>';
+        selectHtml += '</select>';
         
-        console.log('创建模态框，HTML内容:', dataListHtml);
-        const modal = createModal('选择要加载的数据', dataListHtml);
+        console.log('创建模态框HTML:', selectHtml);
         
-        // 添加加载按钮
+        // 创建一个简单的模态框，不使用createModal函数
+        const modal = document.createElement('div');
+        modal.id = 'cloudDataModal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        `;
+        
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = `
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        `;
+        
+        const modalTitle = document.createElement('h2');
+        modalTitle.textContent = '选择要加载的数据';
+        modalTitle.style.marginBottom = '20px';
+        modalTitle.style.textAlign = 'center';
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.innerHTML = selectHtml;
+        
+        const buttonsDiv = document.createElement('div');
+        buttonsDiv.style.cssText = `
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        `;
+        
         const loadBtn = document.createElement('button');
         loadBtn.textContent = '加载数据';
-        loadBtn.className = 'btn-primary';
+        loadBtn.style.cssText = `
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        `;
         loadBtn.onclick = () => {
             console.log('加载按钮被点击');
             const selectElement = document.getElementById('cloudDataSelect');
             if (!selectElement) {
                 console.error('找不到cloudDataSelect元素');
+                alert('找不到选择元素');
                 return;
             }
-            console.log('选择元素:', selectElement);
             const selectedIndex = parseInt(selectElement.value);
-            console.log('选择的索引:', selectedIndex);
             const selectedData = allData[selectedIndex];
-            console.log('选择的数据:', JSON.stringify(selectedData, null, 2));
             
             if (selectedData) {
-                // 直接手动加载数据到表单，不依赖loadDataToForm函数
-                console.log('开始手动加载数据到表单');
+                console.log('开始加载数据到表单:', selectedData);
                 
-                // 恢复基本信息
+                // 直接手动加载数据到表单
                 document.getElementById('teamNumber').value = selectedData.teamNumber || '';
                 document.getElementById('matchName').value = selectedData.matchName || '';
                 document.getElementById('matchType').value = selectedData.matchType || 'Q';
@@ -2169,33 +2259,51 @@ async function loadFromCloud() {
                     updateLiveScore();
                 }
                 
-                closeModal(modal);
-                showSuccess('数据加载成功！');
+                // 关闭模态框
+                document.body.removeChild(modal);
+                alert('数据加载成功！');
                 console.log('数据加载成功');
             }
         };
         
         const cancelBtn = document.createElement('button');
         cancelBtn.textContent = '取消';
-        cancelBtn.className = 'btn-secondary';
+        cancelBtn.style.cssText = `
+            padding: 10px 20px;
+            background-color: #95a5a6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        `;
         cancelBtn.onclick = () => {
             console.log('取消按钮被点击');
-            closeModal(modal);
+            document.body.removeChild(modal);
         };
         
-        const buttonsContainer = document.createElement('div');
-        buttonsContainer.className = 'button-group';
-        buttonsContainer.appendChild(loadBtn);
-        buttonsContainer.appendChild(cancelBtn);
+        buttonsDiv.appendChild(loadBtn);
+        buttonsDiv.appendChild(cancelBtn);
         
-        modal.querySelector('.modal-content').appendChild(buttonsContainer);
-        console.log('模态框创建完成');
+        modalContent.appendChild(modalTitle);
+        modalContent.appendChild(contentDiv);
+        modalContent.appendChild(buttonsDiv);
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+        
+        console.log('模态框创建完成并添加到body');
         
     } catch (error) {
         console.error('加载云端数据失败:', error);
         console.error('错误堆栈:', error.stack);
-        hideLoading();
-        showError(`加载云端数据失败: ${error.message}`);
+        
+        // 移除加载模态框（如果存在）
+        const loadingModal = document.getElementById('loadingModal');
+        if (loadingModal) {
+            document.body.removeChild(loadingModal);
+        }
+        
+        alert(`加载云端数据失败: ${error.message}`);
     }
 }
 
