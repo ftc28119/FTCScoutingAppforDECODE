@@ -545,18 +545,18 @@ async function changePassword(currentPassword, newPassword) {
 function createModal(title, content) {
     // 创建一个全屏的固定定位元素作为模态框容器
     const modalContainer = document.createElement('div');
-    modalContainer.className = 'modal-container';
+    modalContainer.className = 'modal';
     modalContainer.style.cssText = `
         position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-        background-color: rgba(0, 0, 0, 0.7);
+        background-color: rgba(0, 0, 0, 0.5);
         display: flex;
         justify-content: center;
         align-items: center;
-        z-index: 9999;
+        z-index: 1000;
         overflow: hidden;
     `;
     
@@ -573,14 +573,14 @@ function createModal(title, content) {
     modalContent.style.cssText = `
         background-color: white;
         border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         width: 90%;
-        max-width: 650px;
-        max-height: 90vh;
+        max-width: 600px;
+        max-height: 85vh;
         display: flex;
         flex-direction: column;
         position: relative;
-        z-index: 10000;
+        z-index: 1001;
         overflow: hidden;
     `;
     
@@ -590,14 +590,12 @@ function createModal(title, content) {
         padding: 20px;
         border-bottom: 1px solid #e9ecef;
         flex-shrink: 0;
-        background-color: #f8f9fa;
     `;
     
     // 创建模态框标题
     const modalTitle = document.createElement('h3');
     modalTitle.textContent = title;
     modalTitle.style.margin = '0';
-    modalTitle.style.fontSize = '18px';
     modalHeader.appendChild(modalTitle);
     
     // 创建模态框内容区域
@@ -607,19 +605,15 @@ function createModal(title, content) {
         padding: 20px;
         overflow-y: auto;
         flex: 1;
-        font-size: 14px;
     `;
     
     // 创建模态框页脚
     const modalFooter = document.createElement('div');
+    modalFooter.className = 'modal-footer';
     modalFooter.style.cssText = `
         padding: 15px 20px;
         border-top: 1px solid #e9ecef;
         flex-shrink: 0;
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-        background-color: #f8f9fa;
     `;
     
     // 组合模态框
