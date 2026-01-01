@@ -2153,15 +2153,21 @@ function showUserData() {
     // 保存所有队伍编号
     let allTeamNumbers = [];
     
-    // 加载所有队伍编号
+    // 加载所有队伍编号（仅当前用户队伍）
     async function loadAllTeamNumbers() {
         try {
+            const currentUser = getCurrentUser();
+            if (!currentUser || !currentUser.team) {
+                return;
+            }
+            
             const response = await fetch(`${getApiUrl()}/api/scouting-data`);
             if (response.ok) {
                 const result = await response.json();
                 const data = result.data || [];
-                // 获取所有唯一的队伍编号
-                allTeamNumbers = [...new Set(data.map(item => item.teamNumber))].sort();
+                // 只获取当前用户队伍的编号
+                const userTeamData = data.filter(item => item.teamNumber === currentUser.team);
+                allTeamNumbers = [...new Set(userTeamData.map(item => item.teamNumber))].sort();
             }
         } catch (error) {
             console.error('加载队伍编号失败:', error);
@@ -2241,13 +2247,31 @@ async function loadUserData() {
         showLoading('加载数据中...');
         
         const searchTeamNumber = document.getElementById('searchTeamNumber')?.value;
+        const currentUser = getCurrentUser();
+        
+        if (!currentUser || !currentUser.team) {
+            const tableBody = document.getElementById('userDataTableBody');
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px; color: #666;">请先登录并加入队伍</td>
+                </tr>
+            `;
+            hideLoading();
+            return;
+        }
+        
+        // 用户只能查看自己队伍的数据
+        const userTeam = currentUser.team;
         const response = await fetch(`${getApiUrl()}/api/scouting-data`);
         
         if (response.ok) {
             const result = await response.json();
             
-            // 过滤数据
+            // 过滤数据：先只显示当前用户队伍的数据
             let filteredData = result.data || [];
+            filteredData = filteredData.filter(item => item.teamNumber === userTeam);
+            
+            // 然后根据搜索条件过滤
             if (searchTeamNumber) {
                 filteredData = filteredData.filter(item => item.teamNumber === searchTeamNumber);
             }
