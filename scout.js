@@ -1854,9 +1854,15 @@ async function submitData() {
     }
     
     const currentUser = getCurrentUser();
+    // 确保currentUser.team存在
+    if (!currentUser || !currentUser.team) {
+        showError('请先登录并加入队伍');
+        return;
+    }
+    
     const data = {
         userId: currentUser?.username || 'anonymous',
-        teamId: currentUser?.team || 'none',
+        teamId: currentUser.team,
         teamNumber,
         matchName,
         matchType,
@@ -2260,21 +2266,30 @@ async function loadUserData() {
             return;
         }
         
-        // 用户只能查看自己队伍的数据
+        // 用户只能查看自己队伍记录的数据
         const userTeam = currentUser.team;
-        const response = await fetch(`${getApiUrl()}/api/scouting-data`);
+        
+        // 构建API请求URL，添加团队ID筛选
+        const apiUrl = `${getApiUrl()}/api/scouting-data?teamId=${encodeURIComponent(userTeam)}`;
+        const response = await fetch(apiUrl);
         
         if (response.ok) {
             const result = await response.json();
             
-            // 过滤数据：先只显示当前用户队伍记录的数据
+            // 过滤数据：先获取API返回的数据
             let filteredData = result.data || [];
-            filteredData = filteredData.filter(item => item.teamId === userTeam);
             
             // 然后根据搜索条件过滤被记录的队伍编号
             if (searchTeamNumber) {
-                filteredData = filteredData.filter(item => item.teamNumber === searchTeamNumber);
+                filteredData = filteredData.filter(item => {
+                    return item.teamNumber === searchTeamNumber;
+                });
             }
+            
+            // 双重保险：再次在前端过滤，确保只显示当前用户队伍记录的数据
+            filteredData = filteredData.filter(item => {
+                return item.teamId === userTeam;
+            });
             
             // 更新表格
             const tableBody = document.getElementById('userDataTableBody');
