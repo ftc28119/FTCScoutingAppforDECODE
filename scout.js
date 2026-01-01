@@ -2276,20 +2276,37 @@ async function loadUserData() {
         if (response.ok) {
             const result = await response.json();
             
-            // 过滤数据：先获取API返回的数据
-            let filteredData = result.data || [];
+            // 1. 先获取当前用户的队伍
+            const userTeam = currentUser.team;
+            console.log('当前用户队伍:', userTeam);
             
-            // 然后根据搜索条件过滤被记录的队伍编号
-            if (searchTeamNumber) {
-                filteredData = filteredData.filter(item => {
-                    return item.teamNumber === searchTeamNumber;
-                });
-            }
-            
-            // 双重保险：再次在前端过滤，确保只显示当前用户队伍记录的数据
-            filteredData = filteredData.filter(item => {
-                return item.teamId === userTeam;
+            // 2. 遍历数据，查看实际的数据结构
+            result.data.forEach((item, index) => {
+                console.log(`数据项${index}的完整结构:`, item);
+                console.log(`数据项${index}的teamNumber:`, item.teamNumber);
+                console.log(`数据项${index}的teamId:`, item.teamId);
+                console.log(`数据项${index}的team:`, item.team);
+                console.log(`数据项${index}的其他可能字段:`, Object.keys(item));
             });
+            
+            // 3. 过滤数据：只保留当前用户队伍记录的数据
+            // 检查多种可能的字段名
+            const filteredData = result.data.filter(item => {
+                // 核心过滤条件：只保留当前用户队伍记录的数据
+                const isUserTeamRecord = 
+                    (item.teamId === userTeam) || 
+                    (item.team === userTeam) || 
+                    (item.recordedByTeam === userTeam) || 
+                    (item.scoutTeam === userTeam) || 
+                    (item.recordTeam === userTeam);
+                    
+                // 然后应用搜索条件，如果有的话
+                const matchesSearch = !searchTeamNumber || item.teamNumber === searchTeamNumber;
+                
+                return isUserTeamRecord && matchesSearch;
+            });
+            
+            console.log('过滤后数据量:', filteredData.length);
             
             // 更新表格
             const tableBody = document.getElementById('userDataTableBody');
