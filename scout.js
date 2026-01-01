@@ -2159,7 +2159,7 @@ function showUserData() {
     // 保存所有队伍编号
     let allTeamNumbers = [];
     
-    // 加载所有队伍编号（仅当前用户队伍）
+    // 加载所有队伍编号（仅当前用户队伍记录的数据）
     async function loadAllTeamNumbers() {
         try {
             const currentUser = getCurrentUser();
@@ -2167,13 +2167,25 @@ function showUserData() {
                 return;
             }
             
-            const response = await fetch(`${getApiUrl()}/api/scouting-data`);
+            // 构建API请求URL，添加团队ID筛选
+            const apiUrl = `${getApiUrl()}/api/scouting-data?teamId=${encodeURIComponent(currentUser.team)}`;
+            const response = await fetch(apiUrl);
+            
             if (response.ok) {
                 const result = await response.json();
                 const data = result.data || [];
-                // 只获取当前用户队伍的编号
-                const userTeamData = data.filter(item => item.teamNumber === currentUser.team);
-                allTeamNumbers = [...new Set(userTeamData.map(item => item.teamNumber))].sort();
+                
+                // 只获取当前用户队伍记录的数据中出现的队伍编号
+                const userTeamRecordedData = data.filter(item => {
+                    return item.teamId === currentUser.team || 
+                           item.team === currentUser.team || 
+                           item.recordedByTeam === currentUser.team || 
+                           item.scoutTeam === currentUser.team || 
+                           item.recordTeam === currentUser.team;
+                });
+                
+                // 获取所有唯一的队伍编号
+                allTeamNumbers = [...new Set(userTeamRecordedData.map(item => item.teamNumber))].sort();
             }
         } catch (error) {
             console.error('加载队伍编号失败:', error);
@@ -2290,20 +2302,19 @@ async function loadUserData() {
             });
             
             // 3. 过滤数据：只保留当前用户队伍记录的数据
-            // 检查多种可能的字段名
-            const filteredData = result.data.filter(item => {
-                // 核心过滤条件：只保留当前用户队伍记录的数据
-                const isUserTeamRecord = 
-                    (item.teamId === userTeam) || 
-                    (item.team === userTeam) || 
-                    (item.recordedByTeam === userTeam) || 
-                    (item.scoutTeam === userTeam) || 
-                    (item.recordTeam === userTeam);
-                    
-                // 然后应用搜索条件，如果有的话
-                const matchesSearch = !searchTeamNumber || item.teamNumber === searchTeamNumber;
-                
-                return isUserTeamRecord && matchesSearch;
+            // 先过滤出所有当前用户队伍记录的数据
+            const userTeamRecordedData = result.data.filter(item => {
+                // 检查多种可能的记录者队伍字段
+                return item.teamId === userTeam || 
+                       item.team === userTeam || 
+                       item.recordedByTeam === userTeam || 
+                       item.scoutTeam === userTeam || 
+                       item.recordTeam === userTeam;
+            });
+            
+            // 然后根据搜索条件过滤被记录的队伍编号
+            const filteredData = userTeamRecordedData.filter(item => {
+                return !searchTeamNumber || item.teamNumber === searchTeamNumber;
             });
             
             console.log('过滤后数据量:', filteredData.length);
