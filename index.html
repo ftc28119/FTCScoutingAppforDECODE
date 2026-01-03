@@ -1319,7 +1319,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="autoOverflow">溢出GATE的Artifacts数量</label>
+                            <label for="autoOverflow">溢出GATE的Artifacts数量（每个1分）</label>
                             <div class="stepper">
                                 <button onclick="updateCounter('autoOverflow', -1)">-</button>
                                 <input type="number" id="autoOverflow" value="0" min="0">
@@ -1327,7 +1327,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="autoClassified">溢出GATE并滚落至球道的Artifacts</label>
+                            <label for="autoClassified">溢出GATE并滚落至球道的Artifacts（每个3分）</label>
                             <div class="stepper">
                                 <button onclick="updateCounter('autoClassified', -1)">-</button>
                                 <input type="number" id="autoClassified" value="0" min="0">
@@ -1338,7 +1338,7 @@
                     <div>
                         <label>自动阶段结束时的分类情况</label>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; color: #666;">
-                            <span>左端：GATE</span>
+                            <span>左端：GATE（靠近上端）</span>
                             <div>
                                 <span>当前排序得分：</span>
                                 <span id="autoSortingScore" style="font-weight: bold; color: #3498db;">0</span>
@@ -1369,7 +1369,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="teleOpOverflow">溢出GATE的Artifacts数量</label>
+                            <label for="teleOpOverflow">溢出GATE的Artifacts数量（每个1分）</label>
                             <div class="stepper">
                                 <button onclick="updateCounter('teleOpOverflow', -1)">-</button>
                                 <input type="number" id="teleOpOverflow" value="0" min="0">
@@ -1377,7 +1377,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="teleOpClassified">溢出GATE并滚落至球道的Artifacts</label>
+                            <label for="teleOpClassified">溢出GATE并滚落至球道的Artifacts（每个3分）</label>
                             <div class="stepper">
                                 <button onclick="updateCounter('teleOpClassified', -1)">-</button>
                                 <input type="number" id="teleOpClassified" value="0" min="0">
@@ -1396,12 +1396,12 @@
                     <div>
                         <label>手动阶段结束时的分类情况</label>
                         <div style="display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; color: #666;">
-                            <span>左端：GATE</span>
+                            <span>左端：GATE（靠近上端）</span>
                             <div>
                                 <span>当前排序得分：</span>
                                 <span id="teleOpSortingScore" style="font-weight: bold; color: #3498db;">0</span>
                             </div>
-                            <span>右端：闸门</span>
+                            <span>右端：闸门（靠近下端）</span>
                         </div>
                         <div class="slots-container" id="teleOpSlots"></div>
                         <div style="display: flex; justify-content: center; margin-top: 5px; font-size: 12px; color: #999;">
