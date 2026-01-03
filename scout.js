@@ -95,6 +95,7 @@ let gameData = {
         overflowArtifacts: 0,
         classifiedArtifacts: 0,
         baseReturnState: "None",
+        teammateDock: "None",
         slots: Array(9).fill(null).map((_, index) => ({
             id: index + 1,
             selectedColor: "None",
@@ -1280,6 +1281,7 @@ function loadData() {
         document.getElementById('teleOpOverflow').value = gameData.teleOp.overflowArtifacts;
         document.getElementById('teleOpClassified').value = gameData.teleOp.classifiedArtifacts;
         document.getElementById('baseReturn').value = gameData.teleOp.baseReturnState;
+        document.getElementById('teammateDock').value = gameData.teleOp.teammateDock || 'None';
         document.getElementById('diedOnField').checked = gameData.general.diedOnField;
         document.getElementById('threeInThree').value = gameData.general.threeInThree;
         document.getElementById('threeInTwo').value = gameData.general.threeInTwo;
@@ -1416,6 +1418,11 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('baseReturn').addEventListener('change', function() {
             gameData.teleOp.baseReturnState = this.value;
             debouncedUpdateLiveScore();
+            saveData();
+        });
+        
+        document.getElementById('teammateDock').addEventListener('change', function() {
+            gameData.teleOp.teammateDock = this.value;
             saveData();
         });
         
@@ -2418,6 +2425,7 @@ function loadDataToPage(data) {
         document.getElementById('teleOpOverflow').value = gameData.teleOp.overflowArtifacts || 0;
         document.getElementById('teleOpClassified').value = gameData.teleOp.classifiedArtifacts || 0;
         document.getElementById('baseReturn').value = gameData.teleOp.baseReturnState || 'None';
+        document.getElementById('teammateDock').value = gameData.teleOp.teammateDock || 'None';
         document.getElementById('diedOnField').checked = gameData.general.diedOnField || false;
         document.getElementById('notes').value = gameData.general.notes || '';
         
@@ -2480,7 +2488,7 @@ function showDetailedData(item) {
                 
                 <!-- TeleOp阶段数据 -->
                 <tr>
-                    <td rowspan="4">TeleOp阶段</td>
+                    <td rowspan="5">TeleOp阶段</td>
                     <td>仓库文物数量</td>
                     <td>${item.gameData.teleOp.depotArtifacts}</td>
                 </tr>
@@ -2495,6 +2503,10 @@ function showDetailedData(item) {
                 <tr>
                     <td>基地返回状态</td>
                     <td>${item.gameData.teleOp.baseReturnState}</td>
+                </tr>
+                <tr>
+                    <td>队友停靠结果</td>
+                    <td>${item.gameData.teleOp.teammateDock || 'None'}</td>
                 </tr>
                 
                 <!-- 一般数据 -->

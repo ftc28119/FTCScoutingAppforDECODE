@@ -1343,7 +1343,7 @@
                                 <span>当前排序得分：</span>
                                 <span id="autoSortingScore" style="font-weight: bold; color: #3498db;">0</span>
                             </div>
-                            <span>右端：闸门</span>
+                            <span>右端：闸门（靠近下端）</span>
                         </div>
                         <div class="slots-container" id="autoSlots"></div>
                         <div style="display: flex; justify-content: center; margin-top: 5px; font-size: 12px; color: #999;">
@@ -1387,6 +1387,14 @@
                         <div class="form-group">
                             <label for="baseReturn">基地返回</label>
                             <select id="baseReturn">
+                                <option value="None">无</option>
+                                <option value="Partial">部分</option>
+                                <option value="Full">完全</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="teammateDock">队友停靠结果</label>
+                            <select id="teammateDock">
                                 <option value="None">无</option>
                                 <option value="Partial">部分</option>
                                 <option value="Full">完全</option>
