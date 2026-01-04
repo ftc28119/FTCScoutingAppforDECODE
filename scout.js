@@ -1011,7 +1011,7 @@ function showMyProfile() {
                 </div>
                 <div class="form-group">
                     <label>创建时间</label>
-                    <div>${safeUser.createdAt ? new Date(safeUser.createdAt).toLocaleString() : '未知'}</div>
+                    <div>${safeUser.createdAt ? new Date(safeUser.createdAt).toLocaleDateString() : '未知'}</div>
                 </div>`;
         
         // 只有加入了团队的用户才显示团队编号和邀请码
