@@ -1009,10 +1009,7 @@ function showMyProfile() {
                     <label>所属团队</label>
                     <div>${safeUser.team} ${safeUser.team !== '无' ? `<span class="status-badge ${role === '队长' ? 'captain' : 'member'}">${role}</span>` : ''}</div>
                 </div>
-                <div class="form-group">
-                    <label>创建时间</label>
-                    <div>${safeUser.createdAt ? new Date(safeUser.createdAt).toLocaleDateString() : '未知'}</div>
-                </div>`;
+`;
         
         // 只有加入了团队的用户才显示团队编号和邀请码
         if (teamNumber !== '未知') {
