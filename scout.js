@@ -19,32 +19,6 @@
 //                   `=---='
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //            佛祖保佑       永无BUG
-
-// 自定义日志函数
-function log(...args) {
-    if (CONSTANTS.IS_DEBUG) {
-        console.log(...args);
-    }
-}
-
-function error(...args) {
-    if (CONSTANTS.IS_DEBUG) {
-        console.error(...args);
-    }
-}
-
-function warn(...args) {
-    if (CONSTANTS.IS_DEBUG) {
-        console.warn(...args);
-    }
-}
-
-function debug(...args) {
-    if (CONSTANTS.IS_DEBUG) {
-        console.debug(...args);
-    }
-}
-
 const CONSTANTS = {
     // 颜色常量
     COLORS: {
@@ -86,9 +60,6 @@ const CONSTANTS = {
     SCOUTING_DATA_STORAGE_KEY: 'ftc-scout-scouting-data',
     CURRENT_USER_STORAGE_KEY: 'ftc-scout-current-user',
     
-    // 调试常量
-    IS_DEBUG: false,
-    
     // 用户系统常量
     INVITE_CODE_LENGTH: 8,
     PASSWORD_SALT: 'ftc-scout-salt',
@@ -104,16 +75,16 @@ const CONSTANTS = {
 // 获取当前使用的API地址（优先使用用户自定义的地址）
 function getApiUrl() {
     const customUrl = localStorage.getItem(CONSTANTS.API_URL_STORAGE_KEY);
-    log('当前主机名:', window.location.hostname);
-    log('自定义API地址:', customUrl);
+    console.log('当前主机名:', window.location.hostname);
+    console.log('自定义API地址:', customUrl);
     // 如果是Railway部署，使用Railway后端URL
     if (window.location.hostname === '28119scout.railway.app' || window.location.hostname === '28119scout.up.railway.app') {
         // 使用实际的Railway后端URL
-        log('使用Railway后端URL');
+        console.log('使用Railway后端URL');
         return 'https://28119local.up.railway.app';
     }
     const result = customUrl || CONSTANTS.API_URL;
-    log('返回的API地址:', result);
+    console.log('返回的API地址:', result);
     return result;
 }
 
@@ -357,13 +328,13 @@ async function fetchTeamsFromBackend() {
             hideLoading();
             return true;
         } else {
-            error('获取队伍数据失败:', response.status);
+            console.error('获取队伍数据失败:', response.status);
             hideLoading();
             showError('获取队伍数据失败');
             return false;
         }
     } catch (error) {
-        error('获取队伍数据异常:', error);
+        console.error('获取队伍数据异常:', error);
         hideLoading();
         showError('获取队伍数据失败，请稍后重试');
         return false;
@@ -440,8 +411,8 @@ async function loginUser(username, password) {
         // 对密码进行哈希处理
         const hashedPassword = hashPassword(password);
         
-        log('登录请求:', { username, hashedPassword });
-        log('API地址:', getApiUrl());
+        console.log('登录请求:', { username, hashedPassword });
+        console.log('API地址:', getApiUrl());
         
         const response = await fetch(`${getApiUrl()}/api/login`, {
             method: 'POST',
@@ -451,22 +422,22 @@ async function loginUser(username, password) {
             body: JSON.stringify({ username, password: hashedPassword })
         });
         
-        log('登录响应状态:', response.status);
+        console.log('登录响应状态:', response.status);
         const result = await response.json();
-        log('登录响应结果:', result);
+        console.log('登录响应结果:', result);
         
         if (result.success) {
             // 登录成功，保存当前用户
             saveCurrentUser(result.user);
             // 从后端获取最新队伍数据（即使失败也不影响登录）
             fetchTeamsFromBackend().catch(error => {
-                error('获取队伍数据失败:', error);
+                console.error('获取队伍数据失败:', error);
             });
         }
         
         return result;
     } catch (error) {
-        error('登录失败:', error);
+        console.error('登录失败:', error);
         return { success: false, message: '登录失败，请稍后重试' };
     }
 }
@@ -509,7 +480,7 @@ async function registerUser(username, password, teamNumber = null, inviteCode = 
         
         return result;
     } catch (error) {
-        error('注册失败:', error);
+        console.error('注册失败:', error);
         return { success: false, message: '注册失败，请稍后重试' };
     }
 }
@@ -526,7 +497,7 @@ async function logoutUser() {
             body: JSON.stringify({ username: currentUser?.username })
         });
     } catch (error) {
-        error('后端注销失败:', error);
+        console.error('后端注销失败:', error);
     } finally {
         clearCurrentUser();
     }
@@ -556,7 +527,7 @@ async function deleteUser(password) {
         
         return result;
     } catch (error) {
-        error('删除账号失败:', error);
+        console.error('删除账号失败:', error);
         return { success: false, message: '删除账号失败，请稍后重试' };
     }
 }
@@ -586,7 +557,7 @@ async function changePassword(currentPassword, newPassword) {
         const result = await response.json();
         return result;
     } catch (error) {
-        error('更改密码失败:', error);
+        console.error('更改密码失败:', error);
         return { success: false, message: '更改密码失败，请稍后重试' };
     }
 }
@@ -894,7 +865,7 @@ function copyToClipboard(text) {
             }, 2000);
         })
         .catch(err => {
-            error('复制失败:', err);
+            console.error('复制失败:', err);
             alert('复制失败，请手动复制');
         });
 }
@@ -926,7 +897,7 @@ async function refreshInviteCode(teamNumber, username) {
             alert(result.message || '邀请码刷新失败');
         }
     } catch (error) {
-        error('刷新邀请码失败:', error);
+        console.error('刷新邀请码失败:', error);
         alert('邀请码刷新失败，请稍后重试');
     }
 }
@@ -1044,7 +1015,7 @@ function showMyProfile() {
                 inviteCode = userTeam.inviteCode || '无';
             }
         } catch (teamError) {
-            error('获取团队信息失败:', teamError);
+            console.error('获取团队信息失败:', teamError);
             // 不影响主要功能，继续执行
         }
         
@@ -1104,7 +1075,7 @@ function showMyProfile() {
         
         modal.querySelector('.modal-content .modal-footer').appendChild(buttonsContainer);
     } catch (error) {
-        error('显示个人信息失败:', error);
+        console.error('显示个人信息失败:', error);
         alert('显示个人信息失败，请稍后重试');
     }
 }
@@ -1348,7 +1319,7 @@ function loadData() {
             
             debouncedUpdateLiveScore();
         } catch (error) {
-            error('加载数据失败:', error);
+            console.error('加载数据失败:', error);
         }
     }
 }
@@ -1366,29 +1337,29 @@ function hashPassword(password) {
 
 // 全局错误处理
 window.addEventListener('error', function(event) {
-    error('全局错误:', event.error);
-    error('错误发生在:', event.filename, '第', event.lineno, '行，第', event.colno, '列');
+    console.error('全局错误:', event.error);
+    console.error('错误发生在:', event.filename, '第', event.lineno, '行，第', event.colno, '列');
     // 即使发生全局错误，也要确保页面可见
-    error('全局错误后，强制设置页面内容为可见');
+    console.error('全局错误后，强制设置页面内容为可见');
     document.body.style.display = 'block';
 });
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', function() {
     try {
-        log('DOMContentLoaded事件已触发');
-        log('开始初始化页面...');
+        console.log('DOMContentLoaded事件已触发');
+        console.log('开始初始化页面...');
         
         // 确保页面始终可见
-        log('强制设置页面内容为可见');
+        console.log('强制设置页面内容为可见');
         document.body.style.display = 'block';
         
         // 直接初始化页面，不需要密码验证
-        log('开始初始化...');
+        console.log('开始初始化...');
         
-        log('开始加载数据...');
+        console.log('开始加载数据...');
         loadData();
-        log('数据加载完成');
+        console.log('数据加载完成');
         
         // 初始化所有统计字段
         document.getElementById('threeInThree').value = document.getElementById('threeInThree').value || 0;
@@ -1401,31 +1372,31 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('oneInOne').value = document.getElementById('oneInOne').value || 0;
         document.getElementById('oneInZero').value = document.getElementById('oneInZero').value || 0;
         
-        log('初始化auto槽位...');
+        console.log('初始化auto槽位...');
         initSlots('auto');
-        log('auto槽位初始化完成');
+        console.log('auto槽位初始化完成');
         
-        log('初始化teleOp槽位...');
+        console.log('初始化teleOp槽位...');
         initSlots('teleOp');
-        log('teleOp槽位初始化完成');
+        console.log('teleOp槽位初始化完成');
         
-        log('更新实时分数...');
+        console.log('更新实时分数...');
         updateLiveScore();
-        log('实时分数更新完成');
+        console.log('实时分数更新完成');
         
-        log('更新认证UI...');
+        console.log('更新认证UI...');
         updateAuthUI();
-        log('认证UI更新完成');
+        console.log('认证UI更新完成');
         
-        log('初始化表单验证...');
+        console.log('初始化表单验证...');
         initFormValidation();
-        log('表单验证初始化完成');
+        console.log('表单验证初始化完成');
         
-        log('初始化自动保存功能...');
+        console.log('初始化自动保存功能...');
         initAutoSave();
-        log('自动保存功能初始化完成');
+        console.log('自动保存功能初始化完成');
         
-        log('页面初始化完成');
+        console.log('页面初始化完成');
         
         // 添加基本信息事件监听器
         document.getElementById('teamNumber').addEventListener('input', saveData);
@@ -1550,10 +1521,10 @@ document.addEventListener('DOMContentLoaded', function() {
         checkPatternMatch();
     
     } catch (error) {
-        error('页面初始化错误:', error);
-        error('错误堆栈:', error.stack);
+        console.error('页面初始化错误:', error);
+        console.error('错误堆栈:', error.stack);
         // 即使发生错误，也要确保页面可见
-        error('初始化错误后，强制设置页面内容为可见');
+        console.error('初始化错误后，强制设置页面内容为可见');
         document.body.style.display = 'block';
     }
     
@@ -1586,13 +1557,13 @@ function initSlots(phase) {
         try {
             checkPatternMatch();
         } catch (error) {
-            error('检查图案匹配错误:', error);
+            console.error('检查图案匹配错误:', error);
         }
         
         try {
             updateLiveScore();
         } catch (error) {
-            error('更新实时分数错误:', error);
+            console.error('更新实时分数错误:', error);
         }
     }
 }
@@ -1948,7 +1919,7 @@ async function submitData() {
             showError('数据提交失败：' + result.message);
         }
     } catch (error) {
-        error('数据提交失败:', error);
+        console.error('数据提交失败:', error);
         hideLoading();
         showError('数据提交失败，请检查网络连接或稍后重试');
     } finally {
@@ -2132,7 +2103,7 @@ function importData(file) {
             
             alert('数据导入成功！');
         } catch (error) {
-            error('数据导入失败:', error);
+            console.error('数据导入失败:', error);
             alert('数据导入失败，请检查文件格式是否正确');
         }
     };
@@ -2241,7 +2212,7 @@ function showUserData() {
                 allTeamNumbers = [...new Set(userTeamRecordedData.map(item => item.teamNumber))].sort();
             }
         } catch (error) {
-            error('加载队伍编号失败:', error);
+            console.error('加载队伍编号失败:', error);
         }
     }
     
@@ -2340,16 +2311,16 @@ async function loadUserData() {
         if (response.ok) {
             const result = await response.json();
             
-            log('=== 调试信息 ===');
-            log('当前用户:', currentUser.username);
-            log('当前用户队伍:', userTeam);
-            log('API返回总数据量:', result.data.length);
+            console.log('=== 调试信息 ===');
+            console.log('当前用户:', currentUser.username);
+            console.log('当前用户队伍:', userTeam);
+            console.log('API返回总数据量:', result.data.length);
             
             // 遍历数据，查看实际的数据结构
             result.data.forEach((item, index) => {
-                log(`数据项${index}的完整结构:`, item);
-                log(`数据项${index}的teamNumber:`, item.teamNumber);
-                log(`数据项${index}的teamId:`, item.teamId);
+                console.log(`数据项${index}的完整结构:`, item);
+                console.log(`数据项${index}的teamNumber:`, item.teamNumber);
+                console.log(`数据项${index}的teamId:`, item.teamId);
             });
             
             // 严格过滤：只保留当前用户队伍记录的数据（使用teamId字段）
@@ -2359,7 +2330,7 @@ async function loadUserData() {
                 return item.teamId === userTeam;
             });
             
-            log('当前队伍记录的数据量:', filteredData.length);
+            console.log('当前队伍记录的数据量:', filteredData.length);
             
             // 然后根据搜索条件过滤被记录的队伍编号
             if (searchTeamNumber) {
@@ -2368,8 +2339,8 @@ async function loadUserData() {
                 });
             }
             
-            log('搜索后数据量:', filteredData.length);
-            log('=== 调试结束 ===');
+            console.log('搜索后数据量:', filteredData.length);
+            console.log('=== 调试结束 ===');
             
             // 更新表格
             const tableBody = document.getElementById('userDataTableBody');
@@ -2399,11 +2370,11 @@ async function loadUserData() {
                 });
             }
         } else {
-            error('加载数据失败:', response.status);
+            console.error('加载数据失败:', response.status);
             showError('加载数据失败');
         }
     } catch (error) {
-        error('加载数据异常:', error);
+        console.error('加载数据异常:', error);
         showError('加载数据失败，请稍后重试');
     } finally {
         hideLoading();
@@ -2433,7 +2404,7 @@ async function deleteMatchData(id) {
             }
         }
     } catch (error) {
-        error('删除数据异常:', error);
+        console.error('删除数据异常:', error);
         hideLoading();
         showError('删除失败，请稍后重试');
     }
@@ -2495,7 +2466,7 @@ function loadDataToPage(data) {
         
         showSuccess('数据已加载到页面');
     } catch (error) {
-        error('加载数据到页面失败:', error);
+        console.error('加载数据到页面失败:', error);
         showError('加载数据到页面失败，请稍后重试');
     }
 }
