@@ -971,7 +971,7 @@ function showMyProfile() {
             username: currentUser.username || '未知',
             team: currentUser.team || '无',
             isCaptain: currentUser.isCaptain || false,
-            createdAt: currentUser.createdAt || Date.now()
+            createdAt: currentUser.createdAt
         };
         
         // 尝试获取并显示团队详细信息
@@ -1011,7 +1011,7 @@ function showMyProfile() {
                 </div>
                 <div class="form-group">
                     <label>创建时间</label>
-                    <div>${new Date(safeUser.createdAt).toLocaleString()}</div>
+                    <div>${safeUser.createdAt ? new Date(safeUser.createdAt).toLocaleString() : '未知'}</div>
                 </div>`;
         
         // 只有加入了团队的用户才显示团队编号和邀请码
