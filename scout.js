@@ -603,7 +603,6 @@ function createModal(title, content) {
         position: relative;
         z-index: 1001;
         overflow: hidden;
-        color: black;
     `;
     
     // 创建模态框头部
@@ -1727,35 +1726,29 @@ function updateSlotsUI(phase) {
 
 // 计算总分
 function calculateScore() {
-    return calculateScoreFromData(gameData, selectedMotif);
-}
-
-// 根据传入的数据计算分数
-function calculateScoreFromData(gameData, selectedMotif) {
     let autoScore = 0;
     let teleOpScore = 0;
-    
-    // 确保gameData结构完整
-    if (!gameData || !gameData.auto || !gameData.teleOp) {
-        return {
-            autoScore: 0,
-            teleOpScore: 0,
-            totalScore: 0
-        };
-    }
     
     // Auto阶段分数
     if (gameData.auto.robotLeave) {
         autoScore += CONSTANTS.AUTO_ROBOT_LEAVE;
     }
     
-    autoScore += (gameData.auto.classifiedArtifacts || 0) * CONSTANTS.CLASSIFIED_ARTIFACT;
-    autoScore += (gameData.auto.overflowArtifacts || 0) * CONSTANTS.OVERFLOW_ARTIFACT;
+    autoScore += gameData.auto.classifiedArtifacts * CONSTANTS.CLASSIFIED_ARTIFACT;
+    autoScore += gameData.auto.overflowArtifacts * CONSTANTS.OVERFLOW_ARTIFACT;
+    
+    // 检查图案匹配
+    const patternMatch = checkPatternMatch();
+    // 每匹配一组 +2 分
+    autoScore += patternMatch.autoMatchCount * CONSTANTS.PATTERN_MATCH;
     
     // TeleOp阶段分数
-    teleOpScore += (gameData.teleOp.depotArtifacts || 0) * CONSTANTS.DEPOT_ARTIFACT;
-    teleOpScore += (gameData.teleOp.overflowArtifacts || 0) * CONSTANTS.OVERFLOW_ARTIFACT;
-    teleOpScore += (gameData.teleOp.classifiedArtifacts || 0) * CONSTANTS.CLASSIFIED_ARTIFACT;
+    teleOpScore += gameData.teleOp.depotArtifacts * CONSTANTS.DEPOT_ARTIFACT;
+    teleOpScore += gameData.teleOp.overflowArtifacts * CONSTANTS.OVERFLOW_ARTIFACT;
+    teleOpScore += gameData.teleOp.classifiedArtifacts * CONSTANTS.CLASSIFIED_ARTIFACT;
+    
+    // 每匹配一组 +2 分
+    teleOpScore += patternMatch.teleOpMatchCount * CONSTANTS.PATTERN_MATCH;
     
     // Base返回分数
     if (gameData.teleOp.baseReturnState === 'Partial') {
@@ -2117,14 +2110,6 @@ function importData(file) {
     reader.readAsText(file);
 }
 
-// 显示批量导入模态框
-function showImportModal() {
-    console.log('showImportModal函数被调用');
-    
-    // 创建一个简单的提示框
-    alert('批量导入功能正在开发中，请稍后再试');
-}
-
 // 显示用户数据
 function showUserData() {
     const modal = createModal('查看数据', `
@@ -2134,9 +2119,6 @@ function showUserData() {
                 <input type="text" id="searchTeamNumber" placeholder="请输入队伍编号(支持联想)">
                 <div id="teamNumberSuggestions" class="suggestions-list"></div>
             </div>
-        </div>
-        <div style="margin-bottom: 20px;">
-            <button id="importDataBtn" class="btn-secondary" style="margin-right: 10px;">批量导入数据</button>
         </div>
         <div class="data-table-container">
             <table id="userDataTable">
@@ -2287,12 +2269,6 @@ function showUserData() {
             suggestionsList.innerHTML = '';
             suggestionsList.style.display = 'none';
         }
-    });
-    
-    // 为批量导入按钮添加事件监听器
-    const importDataBtn = document.getElementById('importDataBtn');
-    importDataBtn.addEventListener('click', () => {
-        showImportModal();
     });
     
     const closeBtn = document.createElement('button');
