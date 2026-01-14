@@ -603,6 +603,7 @@ function createModal(title, content) {
         position: relative;
         z-index: 1001;
         overflow: hidden;
+        color: black;
     `;
     
     // 创建模态框头部
