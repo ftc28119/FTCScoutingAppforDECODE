@@ -2119,28 +2119,10 @@ function importData(file) {
 
 // 显示批量导入模态框
 function showImportModal() {
-    const importModal = createModal('批量导入数据', `
-        <div class="form-group">
-            <label for="batchImportFile">选择数据文件 (.json) - 支持多选</label>
-            <input type="file" id="batchImportFile" accept=".json" style="margin-top: 10px;" multiple>
-        </div>
-        <div class="form-group">
-            <p style="color: #666;">导入功能正在开发中，请稍后再试</p>
-        </div>
-    `);
+    console.log('showImportModal函数被调用');
     
-    // 取消按钮
-    const cancelBtn = document.createElement('button');
-    cancelBtn.textContent = '取消';
-    cancelBtn.className = 'btn-secondary';
-    cancelBtn.onclick = () => closeModal(importModal);
-    
-    // 添加按钮到模态框
-    const buttonsContainer = document.createElement('div');
-    buttonsContainer.className = 'button-group';
-    buttonsContainer.appendChild(cancelBtn);
-    
-    importModal.querySelector('.modal-content .modal-footer').appendChild(buttonsContainer);
+    // 创建一个简单的提示框
+    alert('批量导入功能正在开发中，请稍后再试');
 }
 
 // 显示用户数据
