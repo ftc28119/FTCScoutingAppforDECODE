@@ -2117,152 +2117,16 @@ function importData(file) {
 }
 
 // 显示批量导入模态框
-function showImportModal(parentModal = null) {
+function showImportModal() {
     const importModal = createModal('批量导入数据', `
         <div class="form-group">
-            <label for="batchImportFile">选择数据文件 (.csv 或 .json) - 支持多选</label>
-            <input type="file" id="batchImportFile" accept=".csv,.json" style="margin-top: 10px;" multiple>
+            <label for="batchImportFile">选择数据文件 (.json) - 支持多选</label>
+            <input type="file" id="batchImportFile" accept=".json" style="margin-top: 10px;" multiple>
         </div>
         <div class="form-group">
-            <label>导入说明</label>
-            <div style="margin-top: 10px; padding: 10px; background-color: #f8f9fa; border-radius: 8px;">
-                <p>1. 支持 CSV 和 JSON 格式的数据文件</p>
-                <p>2. 导入的数据将自动关联到当前用户的队伍</p>
-                <p>3. 数据格式必须与系统数据格式一致</p>
-                <p>4. 建议先导出一条数据作为模板</p>
-            </div>
+            <p style="color: #666;">导入功能正在开发中，请稍后再试</p>
         </div>
-        <div id="importResult" class="form-group" style="margin-top: 15px; display: none;"></div>
     `);
-    
-    const fileInput = document.getElementById('batchImportFile');
-    const importResult = document.getElementById('importResult');
-    
-    // 导入按钮
-    const importBtn = document.createElement('button');
-    importBtn.textContent = '导入数据';
-    importBtn.className = 'btn-primary';
-    importBtn.onclick = async () => {
-        if (!fileInput.files || fileInput.files.length === 0) {
-            importResult.innerHTML = '<p style="color: red;">请选择要导入的数据文件</p>';
-            importResult.style.display = 'block';
-            return;
-        }
-        
-        showLoading('数据导入中...');
-        
-        let totalSuccessCount = 0;
-        let totalErrorCount = 0;
-        let filesProcessed = 0;
-        const totalFiles = fileInput.files.length;
-        
-        // 获取当前用户
-        const currentUser = getCurrentUser();
-        if (!currentUser || !currentUser.team) {
-            hideLoading();
-            importResult.innerHTML = '<p style="color: red;">当前用户没有所属团队，无法导入数据</p>';
-            importResult.style.display = 'block';
-            return;
-        }
-        
-        // 处理所有选择的文件
-        for (const file of fileInput.files) {
-            try {
-                // 读取文件内容
-                const fileContent = await readFileAsText(file);
-                let data;
-                
-                // 根据文件扩展名解析数据
-                if (file.name.endsWith('.json')) {
-                    data = JSON.parse(fileContent);
-                } else if (file.name.endsWith('.csv')) {
-                    // 简单的CSV解析（假设第一行是标题）
-                    const csv = fileContent;
-                    const lines = csv.split('\n');
-                    const headers = lines[0].split(',').map(h => h.trim());
-                    data = [];
-                    
-                    for (let i = 1; i < lines.length; i++) {
-                        if (!lines[i].trim()) continue;
-                        const values = lines[i].split(',').map(v => v.trim());
-                        const row = {};
-                        headers.forEach((header, index) => {
-                            row[header] = values[index] || '';
-                        });
-                        data.push(row);
-                    }
-                } else {
-                    throw new Error(`不支持的文件格式: ${file.name}`);
-                }
-                
-                // 确保数据是数组格式
-                if (!Array.isArray(data)) {
-                    data = [data];
-                }
-                
-                // 为每条数据添加团队ID
-                const dataToImport = data.map(item => ({
-                    ...item,
-                    teamId: currentUser.team, // 关联到当前用户的队伍
-                    createdAt: new Date().toISOString() // 添加导入时间
-                }));
-                
-                // 保存到本地存储
-                try {
-                    let localScoutingData = JSON.parse(localStorage.getItem(CONSTANTS.SCOUTING_DATA_STORAGE_KEY) || '[]');
-                    // 为每条数据添加本地唯一ID
-                    const dataWithIds = dataToImport.map(item => ({
-                        ...item,
-                        id: Date.now() + Math.random().toString(36).substr(2, 9),
-                        isLocal: true
-                    }));
-                    localScoutingData = [...localScoutingData, ...dataWithIds];
-                    localStorage.setItem(CONSTANTS.SCOUTING_DATA_STORAGE_KEY, JSON.stringify(localScoutingData));
-                    
-                    // 更新总计数
-                    totalSuccessCount += dataWithIds.length;
-                    filesProcessed++;
-                } catch (error) {
-                    console.error('保存到本地存储失败:', error);
-                    totalErrorCount++;
-                    filesProcessed++;
-                }
-                
-            } catch (error) {
-                console.error(`处理文件 ${file.name} 失败:`, error);
-                totalErrorCount++;
-                filesProcessed++;
-            }
-        }
-        
-        hideLoading();
-        
-        // 显示导入结果
-        importResult.innerHTML = `
-            <p style="color: green;">导入完成！</p>
-            <p>处理文件数: ${totalFiles} 个</p>
-            <p>成功导入: ${totalSuccessCount} 条数据</p>
-            <p>失败: ${totalErrorCount} 条数据</p>
-        `;
-        importResult.style.display = 'block';
-        
-        // 关闭导入模态框
-        setTimeout(() => {
-            closeModal(importModal);
-            // 刷新数据列表
-            loadUserData();
-        }, 2000);
-    };
-    
-    // 辅助函数：读取文件内容
-    function readFileAsText(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target.result);
-            reader.onerror = (error) => reject(error);
-            reader.readAsText(file);
-        });
-    };
     
     // 取消按钮
     const cancelBtn = document.createElement('button');
@@ -2273,7 +2137,6 @@ function showImportModal(parentModal = null) {
     // 添加按钮到模态框
     const buttonsContainer = document.createElement('div');
     buttonsContainer.className = 'button-group';
-    buttonsContainer.appendChild(importBtn);
     buttonsContainer.appendChild(cancelBtn);
     
     importModal.querySelector('.modal-content .modal-footer').appendChild(buttonsContainer);
@@ -2446,7 +2309,7 @@ function showUserData() {
     // 为批量导入按钮添加事件监听器
     const importDataBtn = document.getElementById('importDataBtn');
     importDataBtn.addEventListener('click', () => {
-        showImportModal(modal);
+        showImportModal();
     });
     
     const closeBtn = document.createElement('button');
