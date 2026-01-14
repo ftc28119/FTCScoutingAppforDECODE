@@ -1726,29 +1726,35 @@ function updateSlotsUI(phase) {
 
 // 计算总分
 function calculateScore() {
+    return calculateScoreFromData(gameData, selectedMotif);
+}
+
+// 根据传入的数据计算分数
+function calculateScoreFromData(gameData, selectedMotif) {
     let autoScore = 0;
     let teleOpScore = 0;
+    
+    // 确保gameData结构完整
+    if (!gameData || !gameData.auto || !gameData.teleOp) {
+        return {
+            autoScore: 0,
+            teleOpScore: 0,
+            totalScore: 0
+        };
+    }
     
     // Auto阶段分数
     if (gameData.auto.robotLeave) {
         autoScore += CONSTANTS.AUTO_ROBOT_LEAVE;
     }
     
-    autoScore += gameData.auto.classifiedArtifacts * CONSTANTS.CLASSIFIED_ARTIFACT;
-    autoScore += gameData.auto.overflowArtifacts * CONSTANTS.OVERFLOW_ARTIFACT;
-    
-    // 检查图案匹配
-    const patternMatch = checkPatternMatch();
-    // 每匹配一组 +2 分
-    autoScore += patternMatch.autoMatchCount * CONSTANTS.PATTERN_MATCH;
+    autoScore += (gameData.auto.classifiedArtifacts || 0) * CONSTANTS.CLASSIFIED_ARTIFACT;
+    autoScore += (gameData.auto.overflowArtifacts || 0) * CONSTANTS.OVERFLOW_ARTIFACT;
     
     // TeleOp阶段分数
-    teleOpScore += gameData.teleOp.depotArtifacts * CONSTANTS.DEPOT_ARTIFACT;
-    teleOpScore += gameData.teleOp.overflowArtifacts * CONSTANTS.OVERFLOW_ARTIFACT;
-    teleOpScore += gameData.teleOp.classifiedArtifacts * CONSTANTS.CLASSIFIED_ARTIFACT;
-    
-    // 每匹配一组 +2 分
-    teleOpScore += patternMatch.teleOpMatchCount * CONSTANTS.PATTERN_MATCH;
+    teleOpScore += (gameData.teleOp.depotArtifacts || 0) * CONSTANTS.DEPOT_ARTIFACT;
+    teleOpScore += (gameData.teleOp.overflowArtifacts || 0) * CONSTANTS.OVERFLOW_ARTIFACT;
+    teleOpScore += (gameData.teleOp.classifiedArtifacts || 0) * CONSTANTS.CLASSIFIED_ARTIFACT;
     
     // Base返回分数
     if (gameData.teleOp.baseReturnState === 'Partial') {
@@ -2111,7 +2117,7 @@ function importData(file) {
 }
 
 // 显示批量导入模态框
-function showImportModal() {
+function showImportModal(parentModal = null) {
     const importModal = createModal('批量导入数据', `
         <div class="form-group">
             <label for="batchImportFile">选择数据文件 (.csv 或 .json) - 支持多选</label>
@@ -2201,35 +2207,26 @@ function showImportModal() {
                     createdAt: new Date().toISOString() // 添加导入时间
                 }));
                 
-                // 批量提交当前文件的数据到后端
-                let fileSuccessCount = 0;
-                let fileErrorCount = 0;
-                
-                for (const item of dataToImport) {
-                    try {
-                        const response = await fetch(`${getApiUrl()}/api/scouting-data`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(item)
-                        });
-                        
-                        if (response.ok) {
-                            fileSuccessCount++;
-                        } else {
-                            fileErrorCount++;
-                        }
-                    } catch (error) {
-                        console.error('导入单条数据失败:', error);
-                        fileErrorCount++;
-                    }
+                // 保存到本地存储
+                try {
+                    let localScoutingData = JSON.parse(localStorage.getItem(CONSTANTS.SCOUTING_DATA_STORAGE_KEY) || '[]');
+                    // 为每条数据添加本地唯一ID
+                    const dataWithIds = dataToImport.map(item => ({
+                        ...item,
+                        id: Date.now() + Math.random().toString(36).substr(2, 9),
+                        isLocal: true
+                    }));
+                    localScoutingData = [...localScoutingData, ...dataWithIds];
+                    localStorage.setItem(CONSTANTS.SCOUTING_DATA_STORAGE_KEY, JSON.stringify(localScoutingData));
+                    
+                    // 更新总计数
+                    totalSuccessCount += dataWithIds.length;
+                    filesProcessed++;
+                } catch (error) {
+                    console.error('保存到本地存储失败:', error);
+                    totalErrorCount++;
+                    filesProcessed++;
                 }
-                
-                // 更新总计数
-                totalSuccessCount += fileSuccessCount;
-                totalErrorCount += fileErrorCount;
-                filesProcessed++;
                 
             } catch (error) {
                 console.error(`处理文件 ${file.name} 失败:`, error);
